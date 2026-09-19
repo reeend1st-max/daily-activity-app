@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Activity Tracker</title>
+  <title>Daily Activity Tracker & Dashboard</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -11,12 +11,11 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: #f8fafc;
     }
-    /* Style tabel ala Google Sheets */
     .sheet-table th, .sheet-table td {
       border: 1px solid #e2e8f0;
     }
     .sheet-table th {
-      background-color: #dbeafe; /* Warna biru muda header ala gambar */
+      background-color: #dbeafe;
       color: #1e3a8a;
       font-weight: 700;
     }
@@ -30,163 +29,395 @@
 
   <div class="max-w-7xl mx-auto space-y-6">
     
-    <!-- Header App -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-      <div>
-        <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          📅 Daily Activity Tracker
-        </h1>
-        <p class="text-sm text-slate-500 mt-1">
-          Catat dan evaluasi aktivitas harianmu dengan tampilan spreadsheet yang simpel & interaktif.
-        </p>
+    <!-- Top Nav / Header -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl text-xl">📅</div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-800">Daily Activity App</h1>
+          <p class="text-xs text-slate-500">Kelola aktivitas harian, produktivitas bulanan, dan evaluasi diri.</p>
+        </div>
       </div>
-      <div class="flex flex-wrap gap-2">
-        <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
-          <span>➕</span> Tambah Baris Kosong
+
+      <!-- Tab Buttons -->
+      <div class="flex bg-slate-100 p-1 rounded-xl w-full md:w-auto">
+        <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition bg-white text-blue-600 shadow-sm">
+          📊 Dashboard & Kalender
         </button>
-        <button onclick="resetDefaultData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg text-sm font-medium transition">
-          🔄 Reset Data
+        <button id="tab-btn-spreadsheet" onclick="switchTab('spreadsheet')" class="flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900">
+          📋 Spreadsheet View
         </button>
       </div>
     </div>
 
-    <!-- Ringkasan Statistik -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-semibold text-slate-400 uppercase">Total Aktivitas</p>
-        <p id="stat-total" class="text-2xl font-bold text-slate-700 mt-1">0</p>
+    <!-- TAB 1: DASHBOARD & KALENDER -->
+    <div id="view-dashboard" class="space-y-6">
+      
+      <!-- Filter Bulan & Tahun Dashboard -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <span>🗓️</span> Ringkasan Produktivitas Bulan Ini
+        </h2>
+        <div class="flex gap-2">
+          <select id="dash-month" onchange="renderDashboard()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white focus:outline-none focus:border-blue-500">
+            <option value="0">Januari</option>
+            <option value="1">Februari</option>
+            <option value="2">Maret</option>
+            <option value="3">April</option>
+            <option value="4">Mei</option>
+            <option value="5">Juni</option>
+            <option value="6">Juli</option>
+            <option value="7">Agustus</option>
+            <option value="8" selected>September</option>
+            <option value="9">Oktober</option>
+            <option value="10">November</option>
+            <option value="11">Desember</option>
+          </select>
+          <select id="dash-year" onchange="renderDashboard()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white focus:outline-none focus:border-blue-500">
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </div>
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-semibold text-red-500 uppercase">🔴 Belum</p>
-        <p id="stat-belum" class="text-2xl font-bold text-red-600 mt-1">0</p>
+
+      <!-- Kartu KPI Stat Bulanan -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-400 uppercase">Total Task</p>
+          <p id="dash-stat-total" class="text-2xl font-bold text-slate-700 mt-1">0</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-emerald-600 uppercase">🟢 Selesai</p>
+          <p id="dash-stat-selesai" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-amber-600 uppercase">🟡 On Progress</p>
+          <p id="dash-stat-progress" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-red-600 uppercase">🔴 Belum</p>
+          <p id="dash-stat-belum" class="text-2xl font-bold text-red-600 mt-1">0</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
+          <p class="text-xs font-semibold text-blue-600 uppercase">⚡ Rate Selesai</p>
+          <p id="dash-stat-rate" class="text-2xl font-bold text-blue-600 mt-1">0%</p>
+        </div>
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-semibold text-amber-500 uppercase">🟡 On Progress</p>
-        <p id="stat-progress" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+
+      <!-- Main Layout: Kalender & Grafik Kategori -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Kalender Bulanan -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span>📅</span> Kalender Aktivitas Bulanan
+            </h3>
+            <span class="text-xs text-slate-400">Klik tanggal untuk melihat tugas</span>
+          </div>
+
+          <!-- Grid Hari & Tanggal -->
+          <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-400 py-1 border-b border-slate-100">
+            <div>Minggu</div><div>Senin</div><div>Selasa</div><div>Rabu</div><div>Kamis</div><div>Jumat</div><div>Sabtu</div>
+          </div>
+          <div id="calendar-grid" class="grid grid-cols-7 gap-2">
+            <!-- Render via JS -->
+          </div>
+
+          <!-- Legenda Warna -->
+          <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Semua Selesai</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400 inline-block"></span> Ada On Progress</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-red-400 inline-block"></span> Ada Belum</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-100 inline-block"></span> Tidak Ada Aktivitas</div>
+          </div>
+        </div>
+
+        <!-- Statistik Kategori (Breakdown) -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <span>📊</span> Distribusi Kategori
+          </h3>
+          <div id="category-breakdown" class="space-y-3 pt-2">
+            <!-- Render via JS -->
+          </div>
+        </div>
+
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-semibold text-emerald-500 uppercase">🟢 Selesai</p>
-        <p id="stat-selesai" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+
+      <!-- Mini Preview Aktivitas Terpilih -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 id="selected-date-title" class="font-bold text-slate-800 text-sm">
+            📌 Daftar Aktivitas: Semua Hari di Bulan Ini
+          </h3>
+          <button onclick="clearCalendarFilter()" class="text-xs text-blue-600 hover:underline">Tampilkan Semua</button>
+        </div>
+        <div id="dash-activity-list" class="divide-y divide-slate-100 text-sm">
+          <!-- Render via JS -->
+        </div>
       </div>
+
     </div>
 
-    <!-- Filter & Pencarian -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-      <div class="w-full md:w-72">
-        <input type="text" id="search-input" oninput="renderTable()" placeholder="🔍 Cari aktivitas atau catatan..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+    <!-- TAB 2: SPREADSHEET MAIN VIEW -->
+    <div id="view-spreadsheet" class="space-y-6 hidden">
+      
+      <!-- Action Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex flex-wrap gap-2">
+          <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+            <span>➕</span> Tambah Baris Kosong
+          </button>
+          <button onclick="resetDefaultData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg text-sm font-medium transition">
+            🔄 Reset Data Contoh
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <input type="text" id="search-input" oninput="renderTable()" placeholder="🔍 Cari aktivitas/catatan..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+          <select id="filter-kategori" onchange="renderTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
+            <option value="">Semua Kategori</option>
+            <option value="Outfit">👕 Outfit</option>
+            <option value="Belajar">📚 Belajar</option>
+            <option value="Praktek">🛠️ Praktek</option>
+            <option value="Riset">💡 Riset</option>
+            <option value="Kerja">💼 Kerja</option>
+            <option value="Olahraga">🏋️ Olahraga</option>
+            <option value="Habit">🧴 Habit</option>
+          </select>
+          <select id="filter-status" onchange="renderTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
+            <option value="">Semua Status</option>
+            <option value="Belum">🔴 Belum</option>
+            <option value="On Progress">🟡 On Progress</option>
+            <option value="Selesai">🟢 Selesai</option>
+          </select>
+        </div>
       </div>
-      <div class="flex flex-wrap gap-2 w-full md:w-auto">
-        <select id="filter-kategori" onchange="renderTable()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
-          <option value="">Semua Kategori</option>
-          <option value="Outfit">👕 Outfit</option>
-          <option value="Belajar">📚 Belajar</option>
-          <option value="Praktek">🛠️ Praktek</option>
-          <option value="Riset">💡 Riset</option>
-          <option value="Kerja">💼 Kerja</option>
-          <option value="Olahraga">🏋️ Olahraga</option>
-          <option value="Habit">🧴 Habit</option>
-        </select>
-        <select id="filter-status" onchange="renderTable()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
-          <option value="">Semua Status</option>
-          <option value="Belum">🔴 Belum</option>
-          <option value="On Progress">🟡 On Progress</option>
-          <option value="Selesai">🟢 Selesai</option>
-        </select>
+
+      <!-- Tabel Spreadsheet -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+        <table class="w-full text-left border-collapse sheet-table text-sm">
+          <thead>
+            <tr>
+              <th class="p-3 w-36 text-center">Tanggal</th>
+              <th class="p-3 w-28 text-center">Hari</th>
+              <th class="p-3 min-w-[200px]">Aktivitas</th>
+              <th class="p-3 w-44 text-center">Kategori</th>
+              <th class="p-3 w-40 text-center">Status</th>
+              <th class="p-3 min-w-[180px]">Catatan</th>
+              <th class="p-3 min-w-[180px]">Evaluasi</th>
+              <th class="p-3 w-16 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
       </div>
-    </div>
 
-    <!-- Tabel Spreadsheet Main View -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-      <table class="w-full text-left border-collapse sheet-table text-sm">
-        <thead>
-          <tr>
-            <th class="p-3 w-36 text-center">Tanggal</th>
-            <th class="p-3 w-28 text-center">Hari</th>
-            <th class="p-3 min-w-[200px]">Aktivitas</th>
-            <th class="p-3 w-44 text-center">Kategori</th>
-            <th class="p-3 w-40 text-center">Status</th>
-            <th class="p-3 min-w-[200px]">Catatan</th>
-            <th class="p-3 min-w-[200px]">Evaluasi</th>
-            <th class="p-3 w-16 text-center">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="table-body">
-          <!-- Data baris akan di-render di sini oleh JavaScript -->
-        </tbody>
-      </table>
     </div>
-
-    <p class="text-xs text-slate-400 text-center">
-      💡 <b>Tips:</b> Klik pada teks di kolom <i>Aktivitas</i>, <i>Catatan</i>, atau <i>Evaluasi</i> untuk langsung mengetik dan mengedit teks.
-    </p>
 
   </div>
 
-  <!-- JavaScript Logic -->
   <script>
-    // Data bawaan awal (relate dengan keseharian unisex)
+    // Data contoh awal
     const initialData = [
-      {
-        id: '1',
-        tanggal: '2026-09-20',
-        hari: 'Minggu',
-        aktivitas: 'Menyiapkan padu padan outfit unisex minggu ini (Kaos polos + Wide pants + Sneakers)',
-        kategori: 'Outfit',
-        status: 'Selesai',
-        catatan: 'Siapkan opsi warna netral: hitam, grey, krem',
-        evaluasi: 'Lebih praktis kalau dipilah dari malam hari'
-      },
-      {
-        id: '2',
-        tanggal: '2026-09-21',
-        hari: 'Senin',
-        aktivitas: 'Workout rutin & kardio 30 menit',
-        kategori: 'Olahraga',
-        status: 'On Progress',
-        catatan: 'Target 3x seminggu konsisten',
-        evaluasi: 'Fokus pada bentuk gerakan dan pemanasan'
-      },
-      {
-        id: '3',
-        tanggal: '2026-09-21',
-        hari: 'Senin',
-        aktivitas: 'Review & update fitur keuangann-ku di GitHub',
-        kategori: 'Kerja',
-        status: 'Belum',
-        catatan: 'Perbaiki error penambahan komponen transaksi',
-        evaluasi: 'Selesaikan sebelum jam 5 sore'
-      },
-      {
-        id: '4',
-        tanggal: '2026-09-22',
-        hari: 'Selasa',
-        aktivitas: 'Mempelajari dokumentasi Vercel & Deployment',
-        kategori: 'Belajar',
-        status: 'Selesai',
-        catatan: 'Coba deploy manual lewat Git commit',
-        evaluasi: 'Proses deploy sangat cepat dan mudah'
-      }
+      { id: '1', tanggal: '2026-09-01', hari: 'Selasa', aktivitas: 'Menyiapkan opsi outfit unisex mingguan', kategori: 'Outfit', status: 'Selesai', catatan: 'Kaos polos & wide pants', evaluasi: 'Praktis dan hemat waktu pagi' },
+      { id: '2', tanggal: '2026-09-02', hari: 'Rabu', aktivitas: 'Workout 30 menit & cardio', kategori: 'Olahraga', status: 'Selesai', catatan: 'Target konsisten 3x seminggu', evaluasi: 'Badan terasa lebih segar' },
+      { id: '3', tanggal: '2026-09-03', hari: 'Kamis', aktivitas: 'Latihan coding & deploy Vercel', kategori: 'Belajar', status: 'Selesai', catatan: 'Integrasi repo GitHub', evaluasi: 'Paham alur auto-deploy' },
+      { id: '4', tanggal: '2026-09-08', hari: 'Selasa', aktivitas: 'Riset ide fitur Dashboard & Kalender', kategori: 'Riset', status: 'On Progress', catatan: 'Cari referensi layout clean', evaluasi: 'Perlu visualisasi simpel' },
+      { id: '5', tanggal: '2026-09-10', hari: 'Kamis', aktivitas: 'Update repositori keuangann-ku', kategori: 'Kerja', status: 'Belum', catatan: 'Fix bug komponen transaksi', evaluasi: 'Selesaikan akhir pekan' }
     ];
 
-    // Ambil data dari localStorage atau gunakan data awal
     let activities = JSON.parse(localStorage.getItem('daily_activities_db')) || initialData;
-
+    let selectedCalendarDate = null;
     const listHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
-    // Simpan ke localStorage
     function saveData() {
       localStorage.setItem('daily_activities_db', JSON.stringify(activities));
-      updateStats();
+      renderDashboard();
     }
 
-    // Hitung Hari berdasarkan Tanggal
-    function getNamaHari(dateString) {
-      if (!dateString) return '-';
-      const date = new Date(dateString);
-      return isNaN(date.getDay()) ? '-' : listHari[date.getDay()];
+    function switchTab(tab) {
+      const dashView = document.getElementById('view-dashboard');
+      const sheetView = document.getElementById('view-spreadsheet');
+      const dashBtn = document.getElementById('tab-btn-dashboard');
+      const sheetBtn = document.getElementById('tab-btn-spreadsheet');
+
+      if (tab === 'dashboard') {
+        dashView.classList.remove('hidden');
+        sheetView.classList.add('hidden');
+        dashBtn.className = "flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition bg-white text-blue-600 shadow-sm";
+        sheetBtn.className = "flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900";
+        renderDashboard();
+      } else {
+        dashView.classList.add('hidden');
+        sheetView.classList.remove('hidden');
+        sheetBtn.className = "flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition bg-white text-blue-600 shadow-sm";
+        dashBtn.className = "flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900";
+        renderTable();
+      }
     }
 
-    // Render Tabel
+    function getNamaHari(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      return isNaN(d.getDay()) ? '-' : listHari[d.getDay()];
+    }
+
+    // --- DASHBOARD LOGIC ---
+    function renderDashboard() {
+      const m = parseInt(document.getElementById('dash-month').value);
+      const y = parseInt(document.getElementById('dash-year').value);
+
+      // Filter aktivitas bulan & tahun terpilih
+      const monthActivities = activities.filter(a => {
+        if (!a.tanggal) return false;
+        const d = new Date(a.tanggal);
+        return d.getMonth() === m && d.getFullYear() === y;
+      });
+
+      // Stats KPI
+      const total = monthActivities.length;
+      const selesai = monthActivities.filter(a => a.status === 'Selesai').length;
+      const progress = monthActivities.filter(a => a.status === 'On Progress').length;
+      const belum = monthActivities.filter(a => a.status === 'Belum').length;
+      const rate = total > 0 ? Math.round((selesai / total) * 100) : 0;
+
+      document.getElementById('dash-stat-total').innerText = total;
+      document.getElementById('dash-stat-selesai').innerText = selesai;
+      document.getElementById('dash-stat-progress').innerText = progress;
+      document.getElementById('dash-stat-belum').innerText = belum;
+      document.getElementById('dash-stat-rate').innerText = `${rate}%`;
+
+      // Render Kalender
+      renderCalendar(y, m, monthActivities);
+
+      // Render Category Breakdown
+      renderCategoryBreakdown(monthActivities);
+
+      // Render Activity List Preview
+      renderDashboardActivityList(monthActivities);
+    }
+
+    function renderCalendar(year, month, monthData) {
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      // Empty slots
+      for (let i = 0; i < firstDay; i++) {
+        grid.appendChild(document.createElement('div'));
+      }
+
+      // Fill days
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayTasks = monthData.filter(a => a.tanggal === dateStr);
+
+        let bgClass = "bg-slate-50 text-slate-700 hover:bg-slate-100";
+        if (dayTasks.length > 0) {
+          const hasBelum = dayTasks.some(t => t.status === 'Belum');
+          const hasProgress = dayTasks.some(t => t.status === 'On Progress');
+          if (hasBelum) bgClass = "bg-red-100 text-red-800 font-bold border border-red-300";
+          else if (hasProgress) bgClass = "bg-amber-100 text-amber-800 font-bold border border-amber-300";
+          else bgClass = "bg-emerald-100 text-emerald-800 font-bold border border-emerald-300";
+        }
+
+        const isSelected = selectedCalendarDate === dateStr;
+        const activeRing = isSelected ? 'ring-2 ring-blue-600 ring-offset-1' : '';
+
+        const cell = document.createElement('button');
+        cell.className = `p-2.5 rounded-xl text-xs flex flex-col items-center justify-between min-h-[48px] transition ${bgClass} ${activeRing}`;
+        cell.onclick = () => filterByCalendarDate(dateStr);
+
+        cell.innerHTML = `
+          <span class="font-bold">${day}</span>
+          ${dayTasks.length > 0 ? `<span class="text-[10px] opacity-75">${dayTasks.length} task</span>` : ''}
+        `;
+        grid.appendChild(cell);
+      }
+    }
+
+    function filterByCalendarDate(dateStr) {
+      selectedCalendarDate = dateStr;
+      const d = new Date(dateStr);
+      document.getElementById('selected-date-title').innerText = `📌 Daftar Aktivitas: Tanggal ${dateStr} (${getNamaHari(dateStr)})`;
+      renderDashboard();
+    }
+
+    function clearCalendarFilter() {
+      selectedCalendarDate = null;
+      document.getElementById('selected-date-title').innerText = `📌 Daftar Aktivitas: Semua Hari di Bulan Ini`;
+      renderDashboard();
+    }
+
+    function renderCategoryBreakdown(monthData) {
+      const container = document.getElementById('category-breakdown');
+      container.innerHTML = '';
+
+      const categories = ['Outfit', 'Belajar', 'Praktek', 'Riset', 'Kerja', 'Olahraga', 'Habit'];
+      const total = monthData.length || 1;
+
+      categories.forEach(cat => {
+        const count = monthData.filter(a => a.kategori === cat).length;
+        if (count > 0) {
+          const pct = Math.round((count / total) * 100);
+          const item = document.createElement('div');
+          item.className = "space-y-1";
+          item.innerHTML = `
+            <div class="flex justify-between text-xs font-semibold text-slate-700">
+              <span>${getKategoriEmoji(cat)} ${cat}</span>
+              <span>${count} task (${pct}%)</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="h-full bg-blue-500 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          `;
+          container.appendChild(item);
+        }
+      });
+
+      if (container.children.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Belum ada aktivitas di bulan ini.</p>`;
+      }
+    }
+
+    function renderDashboardActivityList(monthData) {
+      const list = document.getElementById('dash-activity-list');
+      list.innerHTML = '';
+
+      let targetData = monthData;
+      if (selectedCalendarDate) {
+        targetData = monthData.filter(a => a.tanggal === selectedCalendarDate);
+      }
+
+      if (targetData.length === 0) {
+        list.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Tidak ada aktivitas untuk ditampilkan.</p>`;
+        return;
+      }
+
+      targetData.forEach(item => {
+        const row = document.createElement('div');
+        row.className = "py-2.5 flex items-center justify-between gap-4";
+        row.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="text-xs px-2 py-1 rounded-md font-semibold border ${getKategoriStyle(item.kategori)}">${item.kategori}</span>
+            <span class="font-medium text-slate-800 truncate">${item.aktivitas}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 text-xs">
+            <span class="text-slate-400">${item.tanggal}</span>
+            <span class="px-2 py-0.5 rounded-full font-semibold border ${getStatusStyle(item.status)}">${item.status}</span>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    // --- SPREADSHEET TABLE LOGIC ---
     function renderTable() {
       const tbody = document.getElementById('table-body');
       const search = document.getElementById('search-input').value.toLowerCase();
@@ -208,11 +439,10 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="8" class="text-center p-8 text-slate-400">
-              Tidak ada aktivitas yang ditemukan. Klik tombol <b>"+ Tambah Baris Kosong"</b> di atas.
+              Tidak ada aktivitas. Klik <b>"+ Tambah Baris Kosong"</b> di atas.
             </td>
           </tr>
         `;
-        updateStats();
         return;
       }
 
@@ -221,22 +451,15 @@
         tr.className = "hover:bg-slate-50 transition-colors";
 
         tr.innerHTML = `
-          <!-- Tanggal -->
           <td class="p-2 text-center">
             <input type="date" value="${item.tanggal}" onchange="updateCell('${item.id}', 'tanggal', this.value)" class="w-full bg-transparent text-center focus:outline-none font-medium text-slate-700">
           </td>
-
-          <!-- Hari -->
           <td class="p-2 text-center text-slate-500 font-semibold bg-slate-50">
             ${item.hari}
           </td>
-
-          <!-- Aktivitas (Direct Editable) -->
           <td class="p-2">
             <div contenteditable="true" onblur="updateCell('${item.id}', 'aktivitas', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-800 font-medium">${item.aktivitas}</div>
           </td>
-
-          <!-- Kategori Dropdown -->
           <td class="p-2 text-center">
             <select onchange="updateCell('${item.id}', 'kategori', this.value)" class="w-full px-2 py-1 rounded-full text-xs font-semibold cursor-pointer border ${getKategoriStyle(item.kategori)}">
               <option value="Outfit" ${item.kategori === 'Outfit' ? 'selected' : ''}>👕 Outfit</option>
@@ -248,8 +471,6 @@
               <option value="Habit" ${item.kategori === 'Habit' ? 'selected' : ''}>🧴 Habit</option>
             </select>
           </td>
-
-          <!-- Status Dropdown -->
           <td class="p-2 text-center">
             <select onchange="updateCell('${item.id}', 'status', this.value)" class="w-full px-2 py-1 rounded-full text-xs font-semibold cursor-pointer border ${getStatusStyle(item.status)}">
               <option value="Belum" ${item.status === 'Belum' ? 'selected' : ''}>🔴 Belum</option>
@@ -257,32 +478,33 @@
               <option value="Selesai" ${item.status === 'Selesai' ? 'selected' : ''}>🟢 Selesai</option>
             </select>
           </td>
-
-          <!-- Catatan (Direct Editable) -->
           <td class="p-2">
             <div contenteditable="true" onblur="updateCell('${item.id}', 'catatan', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-600">${item.catatan}</div>
           </td>
-
-          <!-- Evaluasi (Direct Editable) -->
           <td class="p-2">
             <div contenteditable="true" onblur="updateCell('${item.id}', 'evaluasi', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-600">${item.evaluasi}</div>
           </td>
-
-          <!-- Tombol Hapus -->
           <td class="p-2 text-center">
-            <button onclick="deleteRow('${item.id}')" title="Hapus Baris" class="text-slate-400 hover:text-red-600 p-1 rounded transition">
-              🗑️
-            </button>
+            <button onclick="deleteRow('${item.id}')" title="Hapus Baris" class="text-slate-400 hover:text-red-600 p-1 rounded transition">🗑️</button>
           </td>
         `;
-
         tbody.appendChild(tr);
       });
-
-      updateStats();
     }
 
-    // Style Badge Kategori Pastel
+    function getKategoriEmoji(kat) {
+      switch (kat) {
+        case 'Outfit': return '👕';
+        case 'Belajar': return '📚';
+        case 'Praktek': return '🛠️';
+        case 'Riset': return '💡';
+        case 'Kerja': return '💼';
+        case 'Olahraga': return '🏋️';
+        case 'Habit': return '🧴';
+        default: return '📌';
+      }
+    }
+
     function getKategoriStyle(kat) {
       switch (kat) {
         case 'Outfit': return 'bg-stone-100 text-stone-700 border-stone-300';
@@ -296,7 +518,6 @@
       }
     }
 
-    // Style Badge Status
     function getStatusStyle(stat) {
       switch (stat) {
         case 'Belum': return 'bg-red-100 text-red-800 border-red-300';
@@ -306,69 +527,53 @@
       }
     }
 
-    // Update Sel saat Diubah
     function updateCell(id, key, value) {
-      const index = activities.findIndex(a => a.id === id);
-      if (index !== -1) {
-        activities[index][key] = value;
+      const idx = activities.findIndex(a => a.id === id);
+      if (idx !== -1) {
+        activities[idx][key] = value;
         if (key === 'tanggal') {
-          activities[index].hari = getNamaHari(value);
+          activities[idx].hari = getNamaHari(value);
           renderTable();
         }
         saveData();
       }
     }
 
-    // Tambah Baris Kosong
     function addBlankRow() {
-      const todayObj = new Date();
-      const todayStr = todayObj.toISOString().split('T')[0];
-
+      const today = new Date().toISOString().split('T')[0];
       const newRow = {
         id: Date.now().toString(),
-        tanggal: todayStr,
-        hari: getNamaHari(todayStr),
-        aktivitas: 'Ketik aktivitas baru di sini...',
+        tanggal: today,
+        hari: getNamaHari(today),
+        aktivitas: 'Aktivitas baru...',
         kategori: 'Belajar',
         status: 'Belum',
         catatan: '-',
         evaluasi: '-'
       };
-
       activities.unshift(newRow);
       saveData();
       renderTable();
     }
 
-    // Hapus Baris
     function deleteRow(id) {
-      if (confirm('Apakah kamu yakin ingin menghapus aktivitas ini?')) {
+      if (confirm('Hapus baris ini?')) {
         activities = activities.filter(a => a.id !== id);
         saveData();
         renderTable();
       }
     }
 
-    // Reset Data Awal
     function resetDefaultData() {
-      if (confirm('Kembalikan ke data contoh awal?')) {
+      if (confirm('Kembalikan ke data contoh?')) {
         activities = [...initialData];
         saveData();
         renderTable();
       }
     }
 
-    // Hitung Ringkasan
-    function updateStats() {
-      document.getElementById('stat-total').innerText = activities.length;
-      document.getElementById('stat-belum').innerText = activities.filter(a => a.status === 'Belum').length;
-      document.getElementById('stat-progress').innerText = activities.filter(a => a.status === 'On Progress').length;
-      document.getElementById('stat-selesai').innerText = activities.filter(a => a.status === 'Selesai').length;
-    }
-
-    // Inisialisasi awal
-    renderTable();
+    // Init
+    renderDashboard();
   </script>
-
 </body>
 </html>
