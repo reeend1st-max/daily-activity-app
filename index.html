@@ -18,9 +18,14 @@
       color: #1e3a8a;
       font-weight: 700;
     }
+    .editable-cell {
+      outline: none;
+      border: 1px transparent solid;
+    }
     .editable-cell:focus {
-      outline: 2px solid #2563eb;
+      border-color: #2563eb;
       background-color: #ffffff;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
     }
   </style>
 </head>
@@ -28,7 +33,7 @@
 
   <div class="max-w-7xl mx-auto space-y-6">
     
-    <!-- Navigation Header -->
+    <!-- Top Navigation -->
     <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <div class="p-3 bg-blue-50 text-blue-600 rounded-xl text-xl">📅</div>
@@ -52,10 +57,8 @@
       </div>
     </div>
 
-    <!-- TAB 1: AKTIVITAS HARI INI (SPREADSHEET MAIN) -->
+    <!-- TAB 1: SPREADSHEET MAIN VIEW -->
     <div id="view-today" class="space-y-6">
-      
-      <!-- Actions & Filters -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex flex-wrap gap-2">
           <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
@@ -86,7 +89,7 @@
         </div>
       </div>
 
-      <!-- Tabel Spreadsheet -->
+      <!-- Spreadsheet Table -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
         <table class="w-full text-left border-collapse sheet-table text-sm">
           <thead>
@@ -106,14 +109,11 @@
           </tbody>
         </table>
       </div>
-
     </div>
 
     <!-- TAB 2: KALENDER BULANAN -->
     <div id="view-calendar" class="space-y-6 hidden">
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        
-        <!-- Header Controls & Legenda -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
             <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
@@ -154,23 +154,24 @@
           </div>
         </div>
 
-        <!-- Calendar Grid -->
         <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-400 py-1">
           <div>Minggu</div><div>Senin</div><div>Selasa</div><div>Rabu</div><div>Kamis</div><div>Jumat</div><div>Sabtu</div>
         </div>
         <div id="calendar-grid-full" class="grid grid-cols-7 gap-2">
           <!-- Render via JS -->
         </div>
-
       </div>
 
-      <!-- Panel Detail Keterangan Tanggal Terpilih -->
+      <!-- Panel Detail Tanggal Terpilih -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 id="cal-selected-date-title" class="font-bold text-slate-800 text-sm flex items-center gap-2">
-            📌 Keterangan Aktivitas
-          </h3>
-          <button onclick="clearCalendarSelection()" class="text-xs text-blue-600 hover:underline">Lihat Semua Bulan Ini</button>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <h3 id="cal-selected-date-title" class="font-bold text-slate-800 text-sm">📌 Detail Aktivitas</h3>
+          <div class="flex items-center gap-2">
+            <button id="btn-add-on-date" onclick="openAddModalForSelectedDate()" class="hidden text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium transition">
+              ➕ Tambah Aktivitas di Tanggal Ini
+            </button>
+            <button onclick="clearCalendarSelection()" class="text-xs text-blue-600 hover:underline">Lihat Semua Bulan Ini</button>
+          </div>
         </div>
         <div id="cal-activity-list" class="space-y-3 text-sm">
           <!-- Render via JS -->
@@ -178,9 +179,8 @@
       </div>
     </div>
 
-    <!-- TAB 3: DASHBOARD -->
+    <!-- TAB 3: DASHBOARD STATISTIK -->
     <div id="view-dashboard" class="space-y-6 hidden">
-      
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
           <span>📊</span> Analisis Produktivitas Bulanan
@@ -235,37 +235,93 @@
 
       <!-- Category Breakdown -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-          <span>📈</span> Distribusi Aktivitas Berdasarkan Kategori
-        </h3>
-        <div id="dash-category-breakdown" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-          <!-- Render via JS -->
-        </div>
+        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">📈 Distribusi Kategori</h3>
+        <div id="dash-category-breakdown" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"></div>
       </div>
-
     </div>
 
   </div>
 
+  <!-- MODAL DIALOG INPUT -->
+  <div id="modal-add" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4">
+      <h3 class="text-lg font-bold text-slate-800">➕ Tambah Aktivitas Baru</h3>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal</label>
+          <input type="date" id="modal-tanggal" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Aktivitas</label>
+          <input type="text" id="modal-aktivitas" placeholder="Contoh: Workout 30 Menit" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
+            <select id="modal-kategori" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="Outfit">👕 Outfit</option>
+              <option value="Belajar">📚 Belajar</option>
+              <option value="Praktek">🛠️ Praktek</option>
+              <option value="Riset">💡 Riset</option>
+              <option value="Kerja">💼 Kerja</option>
+              <option value="Olahraga">🏋️ Olahraga</option>
+              <option value="Habit">🧴 Habit</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+            <select id="modal-status" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="Belum">🔴 Belum</option>
+              <option value="On Progress">🟡 On Progress</option>
+              <option value="Selesai">🟢 Selesai</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan</label>
+          <input type="text" id="modal-catatan" placeholder="Catatan opsional..." class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Evaluasi</label>
+          <input type="text" id="modal-evaluasi" placeholder="Evaluasi opsional..." class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium">Batal</button>
+        <button onclick="saveModalData()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Simpan</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // --- UTILS PERTAMA KALI DIDEKLARASIKAN (SUPAYA TIDAK ERROR) ---
+    const listHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+    function getNamaHari(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      return isNaN(d.getDay()) ? '-' : listHari[d.getDay()];
+    }
+
     const now = new Date();
     const realTimeYear = now.getFullYear();
     const realTimeMonth = now.getMonth();
     const realTimeDateStr = now.toISOString().split('T')[0];
 
+    // Data Awal
     const initialData = [
-      { id: '1', tanggal: realTimeDateStr, hari: getNamaHari(realTimeDateStr), aktivitas: 'Menyiapkan outfit unisex mingguan', kategori: 'Outfit', status: 'Selesai', catatan: 'Kaos polos & wide pants', evaluasi: 'Praktis dan hemat waktu' },
+      { id: '1', tanggal: realTimeDateStr, hari: getNamaHari(realTimeDateStr), aktivitas: 'Menyiapkan opsi outfit unisex mingguan', kategori: 'Outfit', status: 'Selesai', catatan: 'Kaos polos & wide pants', evaluasi: 'Praktis dan hemat waktu' },
       { id: '2', tanggal: realTimeDateStr, hari: getNamaHari(realTimeDateStr), aktivitas: 'Workout 30 menit & cardio', kategori: 'Olahraga', status: 'On Progress', catatan: 'Target konsisten 3x seminggu', evaluasi: 'Pemanasan cukup' }
     ];
 
     let activities = JSON.parse(localStorage.getItem('daily_activities_db')) || initialData;
     let selectedCalDate = null;
-    const listHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
     function saveData() {
       localStorage.setItem('daily_activities_db', JSON.stringify(activities));
     }
 
+    // Switch Nav Tabs
     function switchTab(activeTab) {
       ['today', 'calendar', 'dashboard'].forEach(tab => {
         const viewEl = document.getElementById(`view-${tab}`);
@@ -284,13 +340,6 @@
       if (activeTab === 'dashboard') renderDashboardTab();
     }
 
-    function getNamaHari(dateStr) {
-      if (!dateStr) return '-';
-      const d = new Date(dateStr);
-      return isNaN(d.getDay()) ? '-' : listHari[d.getDay()];
-    }
-
-    // Set dropdown ke real time saat pertama buka
     function initRealTimeDropdowns() {
       document.getElementById('cal-month').value = realTimeMonth;
       document.getElementById('cal-year').value = realTimeYear;
@@ -305,12 +354,12 @@
       renderCalendarTab();
     }
 
-    // --- TAB 1: SPREADSHEET TABLE ---
+    // --- TAB 1: SPREADSHEET MAIN TABLE ---
     function renderTodayTable() {
       const tbody = document.getElementById('today-table-body');
-      const search = document.getElementById('search-input').value.toLowerCase();
-      const filterKat = document.getElementById('filter-kategori').value;
-      const filterStat = document.getElementById('filter-status').value;
+      const search = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const filterKat = document.getElementById('filter-kategori')?.value || '';
+      const filterStat = document.getElementById('filter-status')?.value || '';
 
       tbody.innerHTML = '';
 
@@ -409,7 +458,6 @@
         cell.className = `p-2 rounded-xl text-xs flex flex-col items-start justify-between min-h-[72px] transition text-left ${bgClass} ${activeRing} ${todayBadge}`;
         cell.onclick = () => { selectedCalDate = dateStr; renderCalendarTab(); };
 
-        // Judul aktivitas pertama di dalam kotak
         let activityPreview = '';
         if (dayTasks.length > 0) {
           const firstTask = dayTasks[0];
@@ -431,20 +479,22 @@
         grid.appendChild(cell);
       }
 
-      // Render Detail Keterangan Panel
       renderCalendarDetailList(monthTasks);
     }
 
     function renderCalendarDetailList(monthTasks) {
       const list = document.getElementById('cal-activity-list');
+      const btnAddOnDate = document.getElementById('btn-add-on-date');
       list.innerHTML = '';
       
       let filteredTasks = monthTasks;
       if (selectedCalDate) {
         document.getElementById('cal-selected-date-title').innerText = `📌 Keterangan Aktivitas: Tanggal ${selectedCalDate} (${getNamaHari(selectedCalDate)})`;
         filteredTasks = monthTasks.filter(a => a.tanggal === selectedCalDate);
+        btnAddOnDate.classList.remove('hidden');
       } else {
         document.getElementById('cal-selected-date-title').innerText = `📌 Keterangan Aktivitas: Semua Hari di Bulan Ini`;
+        btnAddOnDate.classList.add('hidden');
       }
 
       if (filteredTasks.length === 0) {
@@ -465,7 +515,10 @@
               <span class="text-xs px-2.5 py-1 rounded-full font-semibold border ${getKategoriStyle(item.kategori)}">${item.kategori}</span>
               <span class="text-xs text-slate-500 font-medium">${item.tanggal} (${item.hari})</span>
             </div>
-            <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border ${getStatusStyle(item.status)}">${item.status}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border ${getStatusStyle(item.status)}">${item.status}</span>
+              <button onclick="deleteRow('${item.id}')" title="Hapus" class="text-slate-400 hover:text-red-600 text-xs">🗑️</button>
+            </div>
           </div>
           <h4 class="font-bold text-slate-800 text-base">${item.aktivitas}</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
@@ -533,7 +586,45 @@
       }
     }
 
-    // Style Helpers
+    // Modal Input Handlers
+    function openAddModalForSelectedDate() {
+      document.getElementById('modal-tanggal').value = selectedCalDate || realTimeDateStr;
+      document.getElementById('modal-aktivitas').value = '';
+      document.getElementById('modal-catatan').value = '';
+      document.getElementById('modal-evaluasi').value = '';
+      document.getElementById('modal-add').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-add').classList.add('hidden');
+    }
+
+    function saveModalData() {
+      const tgl = document.getElementById('modal-tanggal').value || realTimeDateStr;
+      const akt = document.getElementById('modal-aktivitas').value.trim() || 'Aktivitas Baru';
+      const kat = document.getElementById('modal-kategori').value;
+      const stat = document.getElementById('modal-status').value;
+      const cat = document.getElementById('modal-catatan').value || '-';
+      const eva = document.getElementById('modal-evaluasi').value || '-';
+
+      activities.unshift({
+        id: Date.now().toString(),
+        tanggal: tgl,
+        hari: getNamaHari(tgl),
+        aktivitas: akt,
+        kategori: kat,
+        status: stat,
+        catatan: cat,
+        evaluasi: eva
+      });
+
+      saveData();
+      closeModal();
+      renderTodayTable();
+      renderCalendarTab();
+    }
+
+    // Helper Styles
     function getKategoriEmoji(kat) {
       switch (kat) {
         case 'Outfit': return '👕';
@@ -584,7 +675,7 @@
         id: Date.now().toString(),
         tanggal: today,
         hari: getNamaHari(today),
-        aktivitas: 'Aktivitas baru...',
+        aktivitas: 'Ketik aktivitas di sini...',
         kategori: 'Belajar',
         status: 'Belum',
         catatan: '-',
@@ -599,6 +690,7 @@
         activities = activities.filter(a => a.id !== id);
         saveData();
         renderTodayTable();
+        renderCalendarTab();
       }
     }
 
@@ -610,9 +702,11 @@
       }
     }
 
-    // Init
-    initRealTimeDropdowns();
-    renderTodayTable();
+    // --- INISIALISASI AWAL ---
+    window.onload = function() {
+      initRealTimeDropdowns();
+      renderTodayTable();
+    };
   </script>
 </body>
 </html>
