@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Daily Activity App</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js untuk grafik visual -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -33,7 +35,7 @@
 
   <div class="max-w-7xl mx-auto space-y-6">
     
-    <!-- Top Navigation -->
+    <!-- Navigation Header -->
     <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <div class="p-3 bg-blue-50 text-blue-600 rounded-xl text-xl">📅</div>
@@ -111,11 +113,10 @@
       </div>
     </div>
 
-    <!-- TAB 2: KALENDER BULANAN (LAYOUT SIDE-BY-SIDE) -->
+    <!-- TAB 2: KALENDER BULANAN -->
     <div id="view-calendar" class="space-y-6 hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <!-- Kolom Kiri: Kalender Ringkhas (7 Cols on LG) -->
         <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
@@ -134,24 +135,12 @@
                 Hari Ini
               </button>
               <select id="cal-month" onchange="renderCalendarTab()" class="px-2 py-1 border border-slate-300 rounded-lg text-xs font-medium bg-white">
-                <option value="0">Jan</option>
-                <option value="1">Feb</option>
-                <option value="2">Mar</option>
-                <option value="3">Apr</option>
-                <option value="4">Mei</option>
-                <option value="5">Jun</option>
-                <option value="6">Jul</option>
-                <option value="7">Agu</option>
-                <option value="8">Sep</option>
-                <option value="9">Okt</option>
-                <option value="10">Nov</option>
-                <option value="11">Des</option>
+                <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option>
+                <option value="4">Mei</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Agu</option>
+                <option value="8">Sep</option><option value="9">Okt</option><option value="10">Nov</option><option value="11">Des</option>
               </select>
               <select id="cal-year" onchange="renderCalendarTab()" class="px-2 py-1 border border-slate-300 rounded-lg text-xs font-medium bg-white">
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
+                <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option>
               </select>
             </div>
           </div>
@@ -159,12 +148,9 @@
           <div class="grid grid-cols-7 gap-1.5 text-center text-[11px] font-bold text-slate-400 py-1">
             <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
           </div>
-          <div id="calendar-grid-full" class="grid grid-cols-7 gap-1.5">
-            <!-- Render via JS -->
-          </div>
+          <div id="calendar-grid-full" class="grid grid-cols-7 gap-1.5"></div>
         </div>
 
-        <!-- Kolom Kanan: Panel Detail Aktivitas di Sebelah (5 Cols on LG) -->
         <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div class="flex flex-col gap-2 border-b border-slate-100 pb-3">
             <div class="flex items-center justify-between">
@@ -175,64 +161,71 @@
               ➕ Tambah Aktivitas di Tanggal Ini
             </button>
           </div>
-          <div id="cal-activity-list" class="space-y-3 text-sm max-h-[500px] overflow-y-auto pr-1">
-            <!-- Render via JS -->
-          </div>
+          <div id="cal-activity-list" class="space-y-3 text-sm max-h-[500px] overflow-y-auto pr-1"></div>
         </div>
 
       </div>
     </div>
 
-    <!-- TAB 3: DASHBOARD PERSENTASE BULANAN -->
+    <!-- TAB 3: DASHBOARD SUPER CLEAN & ELEGAN -->
     <div id="view-dashboard" class="space-y-6 hidden">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-          <span>📊</span> Persentase Produktivitas Bulanan
+          <span>📊</span> Ringkasan Produktivitas Bulan Ini
         </h2>
         <div class="flex gap-2">
           <select id="dash-month" onchange="renderDashboardTab()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white">
-            <option value="0">Januari</option>
-            <option value="1">Februari</option>
-            <option value="2">Maret</option>
-            <option value="3">April</option>
-            <option value="4">Mei</option>
-            <option value="5">Juni</option>
-            <option value="6">Juli</option>
-            <option value="7">Agustus</option>
-            <option value="8">September</option>
-            <option value="9">Oktober</option>
-            <option value="10">November</option>
-            <option value="11">Desember</option>
+            <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option>
+            <option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option>
+            <option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
           </select>
           <select id="dash-year" onchange="renderDashboardTab()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white">
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
+            <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option>
           </select>
         </div>
       </div>
 
-      <!-- Overall Success Rate Card -->
-      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
+      <!-- Main Dashboard Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Card 1: Success Rate Gauge -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
           <div>
-            <h3 class="text-sm font-bold text-slate-700">Total Progress Penyelesaian Aktivitas</h3>
-            <p class="text-xs text-slate-400">Persentase gabungan seluruh aktivitas yang telah diselesaikan bulan ini.</p>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Tingkat Penyelesaian</h3>
+            <div class="flex items-baseline gap-2 mt-2">
+              <span id="dash-overall-rate" class="text-4xl font-extrabold text-blue-600">0%</span>
+              <span class="text-xs text-slate-500 font-medium">Selesai Bulan Ini</span>
+            </div>
           </div>
-          <span id="dash-overall-rate" class="text-3xl font-extrabold text-blue-600">0%</span>
+          <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+            <div id="dash-overall-bar" class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <div id="dash-status-pills" class="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+            <!-- Render via JS -->
+          </div>
         </div>
-        <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-0.5 border border-slate-200">
-          <div id="dash-overall-bar" class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: 0%"></div>
-        </div>
-      </div>
 
-      <!-- Pembagian Persentase Setiap Kategori -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-          <span>📈</span> Distribusi Persentase per Kategori Aktivitas
-        </h3>
-        <div id="dash-category-breakdown" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"></div>
+        <!-- Card 2: Donut Chart Kategori -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center space-y-2 md:col-span-1">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 w-full text-left">Fokus Kategori</h3>
+          <div class="w-44 h-44 relative flex items-center justify-center">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Card 3: Refleksi & Insight -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Refleksi Bulan Ini</h3>
+            <div id="dash-insight-text" class="mt-3 text-sm text-slate-700 space-y-2">
+              <!-- Render via JS -->
+            </div>
+          </div>
+          <div class="p-3 bg-blue-50 rounded-xl text-xs text-blue-700 font-medium">
+            💡 <i>Tetap jaga konsistensi target aktivitas harianmu!</i>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -310,6 +303,7 @@
 
     let activities = JSON.parse(localStorage.getItem('daily_activities_db')) || initialData;
     let selectedCalDate = null;
+    let categoryChartInstance = null;
 
     function saveData() {
       localStorage.setItem('daily_activities_db', JSON.stringify(activities));
@@ -525,7 +519,7 @@
       renderCalendarTab();
     }
 
-    // TAB 3: DASHBOARD PERSENTASE
+    // TAB 3: DASHBOARD SUPER CLEAN
     function renderDashboardTab() {
       const m = parseInt(document.getElementById('dash-month').value);
       const y = parseInt(document.getElementById('dash-year').value);
@@ -538,45 +532,76 @@
 
       const total = monthActivities.length;
       const selesai = monthActivities.filter(a => a.status === 'Selesai').length;
+      const progress = monthActivities.filter(a => a.status === 'On Progress').length;
+      const belum = monthActivities.filter(a => a.status === 'Belum').length;
       const overallRate = total > 0 ? Math.round((selesai / total) * 100) : 0;
 
       document.getElementById('dash-overall-rate').innerText = `${overallRate}%`;
       document.getElementById('dash-overall-bar').style.width = `${overallRate}%`;
 
-      const breakdown = document.getElementById('dash-category-breakdown');
-      breakdown.innerHTML = '';
+      document.getElementById('dash-status-pills').innerHTML = `
+        <span class="text-emerald-600 font-bold">🟢 ${selesai} Selesai</span>
+        <span class="text-amber-600 font-bold">🟡 ${progress} Progress</span>
+        <span class="text-red-600 font-bold">🔴 ${belum} Belum</span>
+      `;
+
+      // Render Donut Chart
+      renderCategoryChart(monthActivities);
+
+      // Render Insight Text
+      const insightContainer = document.getElementById('dash-insight-text');
+      if (total === 0) {
+        insightContainer.innerHTML = `<p class="text-slate-400">Belum ada data aktivitas untuk bulan ini.</p>`;
+      } else {
+        const topCategory = getTopCategory(monthActivities);
+        insightContainer.innerHTML = `
+          <p>• Total <b>${total} aktivitas</b> tercatat bulan ini.</p>
+          <p>• Kategori paling dominan: <b>${topCategory}</b>.</p>
+          <p>• Tingkat keberhasilan saat ini mencapai <b>${overallRate}%</b>.</p>
+        `;
+      }
+    }
+
+    function getTopCategory(monthActivities) {
+      const counts = {};
+      monthActivities.forEach(a => counts[a.kategori] = (counts[a.kategori] || 0) + 1);
+      let top = '-';
+      let max = 0;
+      for (const cat in counts) {
+        if (counts[cat] > max) { max = counts[cat]; top = cat; }
+      }
+      return top;
+    }
+
+    function renderCategoryChart(monthActivities) {
+      const ctx = document.getElementById('categoryChart').getContext('2d');
       const categories = ['Outfit', 'Belajar', 'Praktek', 'Riset', 'Kerja', 'Olahraga', 'Habit'];
+      const dataCounts = categories.map(cat => monthActivities.filter(a => a.kategori === cat).length);
 
-      categories.forEach(cat => {
-        const catActivities = monthActivities.filter(a => a.kategori === cat);
-        const count = catActivities.length;
-        if (count > 0) {
-          const shareOfTotal = Math.round((count / total) * 100);
-          const catSelesai = catActivities.filter(a => a.status === 'Selesai').length;
-          const completionRate = Math.round((catSelesai / count) * 100);
+      if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+      }
 
-          const div = document.createElement('div');
-          div.className = "p-4 bg-slate-50 rounded-xl space-y-2 border border-slate-200/60";
-          div.innerHTML = `
-            <div class="flex justify-between items-center text-xs font-semibold text-slate-700">
-              <span class="text-sm font-bold">${getKategoriEmoji(cat)} ${cat}</span>
-              <span class="text-blue-600 font-bold">${shareOfTotal}% dari total</span>
-            </div>
-            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-600 rounded-full" style="width: ${shareOfTotal}%"></div>
-            </div>
-            <div class="flex justify-between text-[11px] text-slate-400 pt-1">
-              <span>Tingkat Penyelesaian Selesai:</span>
-              <span class="font-semibold text-emerald-600">${completionRate}% Selesai</span>
-            </div>
-          `;
-          breakdown.appendChild(div);
+      categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: categories,
+          datasets: [{
+            data: dataCounts,
+            backgroundColor: ['#e7e5e4', '#10b981', '#0284c7', '#a855f7', '#2563eb', '#f97316', '#ec4899'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          cutout: '70%'
         }
       });
-
-      if (breakdown.children.length === 0) {
-        breakdown.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center col-span-2">Belum ada aktivitas tercatat pada bulan ini.</p>`;
-      }
     }
 
     // Modal Input Handlers
