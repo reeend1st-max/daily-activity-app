@@ -55,7 +55,7 @@
     <!-- TAB 1: AKTIVITAS HARI INI (SPREADSHEET MAIN) -->
     <div id="view-today" class="space-y-6">
       
-      <!-- Top Actions & Filters -->
+      <!-- Actions & Filters -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex flex-wrap gap-2">
           <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
@@ -113,12 +113,24 @@
     <div id="view-calendar" class="space-y-6 hidden">
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         
-        <!-- Header Controls -->
+        <!-- Header Controls & Legenda -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
-            <span>📅</span> Kalender Aktivitas Bulanan
-          </h2>
-          <div class="flex gap-2">
+          <div>
+            <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <span>📅</span> Kalender Aktivitas Bulanan
+            </h2>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-2">
+              <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Selesai</div>
+              <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Progress</div>
+              <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span> Belum</div>
+              <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Hari Ini</div>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <button onclick="setCalendarToToday()" class="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold transition">
+              Hari Ini
+            </button>
             <select id="cal-month" onchange="renderCalendarTab()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white">
               <option value="0">Januari</option>
               <option value="1">Februari</option>
@@ -128,55 +140,47 @@
               <option value="5">Juni</option>
               <option value="6">Juli</option>
               <option value="7">Agustus</option>
-              <option value="8" selected>September</option>
+              <option value="8">September</option>
               <option value="9">Oktober</option>
               <option value="10">November</option>
               <option value="11">Desember</option>
             </select>
             <select id="cal-year" onchange="renderCalendarTab()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white">
+              <option value="2024">2024</option>
               <option value="2025">2025</option>
-              <option value="2026" selected>2026</option>
+              <option value="2026">2026</option>
               <option value="2027">2027</option>
             </select>
           </div>
         </div>
 
         <!-- Calendar Grid -->
-        <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-400 py-2">
+        <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-400 py-1">
           <div>Minggu</div><div>Senin</div><div>Selasa</div><div>Rabu</div><div>Kamis</div><div>Jumat</div><div>Sabtu</div>
         </div>
         <div id="calendar-grid-full" class="grid grid-cols-7 gap-2">
           <!-- Render via JS -->
         </div>
 
-        <!-- Legend -->
-        <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-3 border-t border-slate-100">
-          <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Semua Selesai</div>
-          <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400 inline-block"></span> Ada On Progress</div>
-          <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-red-400 inline-block"></span> Ada Belum</div>
-          <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-100 inline-block"></span> Kosong</div>
-        </div>
-
       </div>
 
-      <!-- Detail Aktivitas Tanggal Terpilih -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 id="cal-selected-date-title" class="font-bold text-slate-800 text-sm">
-            📌 Daftar Aktivitas: Semua Hari di Bulan Ini
+      <!-- Panel Detail Keterangan Tanggal Terpilih -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 id="cal-selected-date-title" class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            📌 Keterangan Aktivitas
           </h3>
-          <button onclick="clearCalendarSelection()" class="text-xs text-blue-600 hover:underline">Tampilkan Semua</button>
+          <button onclick="clearCalendarSelection()" class="text-xs text-blue-600 hover:underline">Lihat Semua Bulan Ini</button>
         </div>
-        <div id="cal-activity-list" class="divide-y divide-slate-100 text-sm">
+        <div id="cal-activity-list" class="space-y-3 text-sm">
           <!-- Render via JS -->
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: DASHBOARD & STATISTIK -->
+    <!-- TAB 3: DASHBOARD -->
     <div id="view-dashboard" class="space-y-6 hidden">
       
-      <!-- Filter Controls -->
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
           <span>📊</span> Analisis Produktivitas Bulanan
@@ -191,14 +195,15 @@
             <option value="5">Juni</option>
             <option value="6">Juli</option>
             <option value="7">Agustus</option>
-            <option value="8" selected>September</option>
+            <option value="8">September</option>
             <option value="9">Oktober</option>
             <option value="10">November</option>
             <option value="11">Desember</option>
           </select>
           <select id="dash-year" onchange="renderDashboardTab()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white">
+            <option value="2024">2024</option>
             <option value="2025">2025</option>
-            <option value="2026" selected>2026</option>
+            <option value="2026">2026</option>
             <option value="2027">2027</option>
           </select>
         </div>
@@ -243,12 +248,14 @@
   </div>
 
   <script>
+    const now = new Date();
+    const realTimeYear = now.getFullYear();
+    const realTimeMonth = now.getMonth();
+    const realTimeDateStr = now.toISOString().split('T')[0];
+
     const initialData = [
-      { id: '1', tanggal: '2026-09-01', hari: 'Selasa', aktivitas: 'Menyiapkan opsi outfit unisex mingguan', kategori: 'Outfit', status: 'Selesai', catatan: 'Kaos polos & wide pants', evaluasi: 'Praktis dan hemat waktu pagi' },
-      { id: '2', tanggal: '2026-09-02', hari: 'Rabu', aktivitas: 'Workout 30 menit & cardio', kategori: 'Olahraga', status: 'Selesai', catatan: 'Target konsisten 3x seminggu', evaluasi: 'Badan terasa lebih segar' },
-      { id: '3', tanggal: '2026-09-03', hari: 'Kamis', aktivitas: 'Latihan coding & deploy Vercel', kategori: 'Belajar', status: 'Selesai', catatan: 'Integrasi repo GitHub', evaluasi: 'Paham alur auto-deploy' },
-      { id: '4', tanggal: '2026-09-08', hari: 'Selasa', aktivitas: 'Riset ide fitur Dashboard & Kalender', kategori: 'Riset', status: 'On Progress', catatan: 'Cari referensi layout clean', evaluasi: 'Perlu visualisasi simpel' },
-      { id: '5', tanggal: '2026-09-10', hari: 'Kamis', aktivitas: 'Update repositori keuangann-ku', kategori: 'Kerja', status: 'Belum', catatan: 'Fix bug komponen transaksi', evaluasi: 'Selesaikan akhir pekan' }
+      { id: '1', tanggal: realTimeDateStr, hari: getNamaHari(realTimeDateStr), aktivitas: 'Menyiapkan outfit unisex mingguan', kategori: 'Outfit', status: 'Selesai', catatan: 'Kaos polos & wide pants', evaluasi: 'Praktis dan hemat waktu' },
+      { id: '2', tanggal: realTimeDateStr, hari: getNamaHari(realTimeDateStr), aktivitas: 'Workout 30 menit & cardio', kategori: 'Olahraga', status: 'On Progress', catatan: 'Target konsisten 3x seminggu', evaluasi: 'Pemanasan cukup' }
     ];
 
     let activities = JSON.parse(localStorage.getItem('daily_activities_db')) || initialData;
@@ -259,10 +266,8 @@
       localStorage.setItem('daily_activities_db', JSON.stringify(activities));
     }
 
-    // Switch Nav Tabs
     function switchTab(activeTab) {
-      const views = ['today', 'calendar', 'dashboard'];
-      views.forEach(tab => {
+      ['today', 'calendar', 'dashboard'].forEach(tab => {
         const viewEl = document.getElementById(`view-${tab}`);
         const btnEl = document.getElementById(`nav-${tab}`);
         if (tab === activeTab) {
@@ -285,7 +290,22 @@
       return isNaN(d.getDay()) ? '-' : listHari[d.getDay()];
     }
 
-    // --- TAB 1: TODAY / MAIN TABLE ---
+    // Set dropdown ke real time saat pertama buka
+    function initRealTimeDropdowns() {
+      document.getElementById('cal-month').value = realTimeMonth;
+      document.getElementById('cal-year').value = realTimeYear;
+      document.getElementById('dash-month').value = realTimeMonth;
+      document.getElementById('dash-year').value = realTimeYear;
+    }
+
+    function setCalendarToToday() {
+      document.getElementById('cal-month').value = realTimeMonth;
+      document.getElementById('cal-year').value = realTimeYear;
+      selectedCalDate = realTimeDateStr;
+      renderCalendarTab();
+    }
+
+    // --- TAB 1: SPREADSHEET TABLE ---
     function renderTodayTable() {
       const tbody = document.getElementById('today-table-body');
       const search = document.getElementById('search-input').value.toLowerCase();
@@ -372,54 +392,88 @@
       for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayTasks = monthTasks.filter(a => a.tanggal === dateStr);
+        const isToday = dateStr === realTimeDateStr;
 
-        let bgClass = "bg-slate-50 text-slate-700 hover:bg-slate-100";
+        let bgClass = "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/60";
         if (dayTasks.length > 0) {
-          if (dayTasks.some(t => t.status === 'Belum')) bgClass = "bg-red-100 text-red-800 font-bold border border-red-300";
-          else if (dayTasks.some(t => t.status === 'On Progress')) bgClass = "bg-amber-100 text-amber-800 font-bold border border-amber-300";
-          else bgClass = "bg-emerald-100 text-emerald-800 font-bold border border-emerald-300";
+          if (dayTasks.some(t => t.status === 'Belum')) bgClass = "bg-red-50 text-red-900 border border-red-300";
+          else if (dayTasks.some(t => t.status === 'On Progress')) bgClass = "bg-amber-50 text-amber-900 border border-amber-300";
+          else bgClass = "bg-emerald-50 text-emerald-900 border border-emerald-300";
         }
 
         const isSelected = selectedCalDate === dateStr;
-        const activeRing = isSelected ? 'ring-2 ring-blue-600' : '';
+        const activeRing = isSelected ? 'ring-2 ring-blue-600 shadow-md' : '';
+        const todayBadge = isToday ? 'ring-2 ring-blue-400 bg-blue-50/50' : '';
 
         const cell = document.createElement('button');
-        cell.className = `p-3 rounded-xl text-xs flex flex-col items-center justify-between min-h-[52px] transition ${bgClass} ${activeRing}`;
+        cell.className = `p-2 rounded-xl text-xs flex flex-col items-start justify-between min-h-[72px] transition text-left ${bgClass} ${activeRing} ${todayBadge}`;
         cell.onclick = () => { selectedCalDate = dateStr; renderCalendarTab(); };
-        cell.innerHTML = `<span class="font-bold">${day}</span>${dayTasks.length > 0 ? `<span class="text-[10px] opacity-75">${dayTasks.length} task</span>` : ''}`;
+
+        // Judul aktivitas pertama di dalam kotak
+        let activityPreview = '';
+        if (dayTasks.length > 0) {
+          const firstTask = dayTasks[0];
+          activityPreview = `
+            <div class="mt-1 w-full truncate text-[11px] font-medium opacity-90">
+              ${getKategoriEmoji(firstTask.kategori)} ${firstTask.aktivitas}
+            </div>
+            ${dayTasks.length > 1 ? `<span class="text-[9px] opacity-60 font-semibold">+${dayTasks.length - 1} lainnya</span>` : ''}
+          `;
+        }
+
+        cell.innerHTML = `
+          <div class="flex items-center justify-between w-full">
+            <span class="font-bold text-sm ${isToday ? 'text-blue-600' : ''}">${day}</span>
+            ${isToday ? `<span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded-full font-semibold">Hari Ini</span>` : ''}
+          </div>
+          ${activityPreview}
+        `;
         grid.appendChild(cell);
       }
 
-      // Render list
+      // Render Detail Keterangan Panel
+      renderCalendarDetailList(monthTasks);
+    }
+
+    function renderCalendarDetailList(monthTasks) {
       const list = document.getElementById('cal-activity-list');
       list.innerHTML = '';
+      
       let filteredTasks = monthTasks;
       if (selectedCalDate) {
-        document.getElementById('cal-selected-date-title').innerText = `📌 Daftar Aktivitas: Tanggal ${selectedCalDate}`;
+        document.getElementById('cal-selected-date-title').innerText = `📌 Keterangan Aktivitas: Tanggal ${selectedCalDate} (${getNamaHari(selectedCalDate)})`;
         filteredTasks = monthTasks.filter(a => a.tanggal === selectedCalDate);
       } else {
-        document.getElementById('cal-selected-date-title').innerText = `📌 Daftar Aktivitas: Semua Hari di Bulan Ini`;
+        document.getElementById('cal-selected-date-title').innerText = `📌 Keterangan Aktivitas: Semua Hari di Bulan Ini`;
       }
 
       if (filteredTasks.length === 0) {
-        list.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Tidak ada aktivitas.</p>`;
+        list.innerHTML = `
+          <div class="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            Tidak ada aktivitas yang tercatat untuk tanggal/periode ini.
+          </div>
+        `;
         return;
       }
 
       filteredTasks.forEach(item => {
-        const row = document.createElement('div');
-        row.className = "py-2.5 flex items-center justify-between gap-4";
-        row.innerHTML = `
-          <div class="flex items-center gap-3 min-w-0">
-            <span class="text-xs px-2 py-1 rounded-md font-semibold border ${getKategoriStyle(item.kategori)}">${item.kategori}</span>
-            <span class="font-medium text-slate-800 truncate">${item.aktivitas}</span>
+        const card = document.createElement('div');
+        card.className = "p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2";
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs px-2.5 py-1 rounded-full font-semibold border ${getKategoriStyle(item.kategori)}">${item.kategori}</span>
+              <span class="text-xs text-slate-500 font-medium">${item.tanggal} (${item.hari})</span>
+            </div>
+            <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border ${getStatusStyle(item.status)}">${item.status}</span>
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0 text-xs">
-            <span class="text-slate-400">${item.tanggal}</span>
-            <span class="px-2 py-0.5 rounded-full font-semibold border ${getStatusStyle(item.status)}">${item.status}</span>
+          <h4 class="font-bold text-slate-800 text-base">${item.aktivitas}</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
+            <p><b>📝 Catatan:</b> ${item.catatan || '-'}</p>
+            <p><b>💡 Evaluasi:</b> ${item.evaluasi || '-'}</p>
           </div>
         `;
-        list.appendChild(row);
+        list.appendChild(card);
       });
     }
 
@@ -460,10 +514,10 @@
         if (count > 0) {
           const pct = Math.round((count / (total || 1)) * 100);
           const div = document.createElement('div');
-          div.className = "p-3 bg-slate-50 rounded-xl space-y-1.5";
+          div.className = "p-3 bg-slate-50 rounded-xl space-y-1.5 border border-slate-200/60";
           div.innerHTML = `
             <div class="flex justify-between text-xs font-semibold text-slate-700">
-              <span>${cat}</span>
+              <span>${getKategoriEmoji(cat)} ${cat}</span>
               <span>${count} task (${pct}%)</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
@@ -479,7 +533,20 @@
       }
     }
 
-    // Styles & Helpers
+    // Style Helpers
+    function getKategoriEmoji(kat) {
+      switch (kat) {
+        case 'Outfit': return '👕';
+        case 'Belajar': return '📚';
+        case 'Praktek': return '🛠️';
+        case 'Riset': return '💡';
+        case 'Kerja': return '💼';
+        case 'Olahraga': return '🏋️';
+        case 'Habit': return '🧴';
+        default: return '📌';
+      }
+    }
+
     function getKategoriStyle(kat) {
       switch (kat) {
         case 'Outfit': return 'bg-stone-100 text-stone-700 border-stone-300';
@@ -544,6 +611,7 @@
     }
 
     // Init
+    initRealTimeDropdowns();
     renderTodayTable();
   </script>
 </body>
