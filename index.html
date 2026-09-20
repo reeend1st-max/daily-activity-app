@@ -49,20 +49,20 @@
 
       <!-- 3 Navigation Tabs -->
       <div class="flex bg-slate-100 p-1.5 rounded-xl w-full md:w-auto">
-        <button id="nav-today" onclick="switchTab('today')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-blue-600 shadow-sm">
+        <button id="nav-today" onclick="switchTab('today')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900">
           📝 Aktivitas Hari Ini
         </button>
         <button id="nav-calendar" onclick="switchTab('calendar')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900">
           📅 Kalender Bulanan
         </button>
-        <button id="nav-dashboard" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900">
+        <button id="nav-dashboard" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-blue-600 shadow-sm">
           📊 Dashboard
         </button>
       </div>
     </div>
 
     <!-- TAB 1: SPREADSHEET MAIN VIEW -->
-    <div id="view-today" class="space-y-6">
+    <div id="view-today" class="space-y-6 hidden">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex flex-wrap gap-2">
           <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
@@ -167,7 +167,7 @@
     </div>
 
     <!-- TAB 3: DASHBOARD SUPER CLEAN & ELEGAN -->
-    <div id="view-dashboard" class="space-y-6 hidden">
+    <div id="view-dashboard" class="space-y-6">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
           <span>📊</span> Ringkasan Produktivitas Bulan Ini
@@ -199,8 +199,17 @@
           <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
             <div id="dash-overall-bar" class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: 0%"></div>
           </div>
-          <div id="dash-status-pills" class="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
-            <!-- Render via JS -->
+          <!-- REVISI NOMOR 3: Indikator status bentuk badge kapsul pastel -->
+          <div id="dash-status-pills" class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-100 text-xs">
+            <div class="bg-emerald-50 text-emerald-700 py-1.5 px-2 rounded-lg font-bold border border-emerald-200/60">
+              <span id="stat-selesai" class="block text-sm">0</span> Selesai
+            </div>
+            <div class="bg-amber-50 text-amber-700 py-1.5 px-2 rounded-lg font-bold border border-amber-200/60">
+              <span id="stat-progress" class="block text-sm">0</span> Progress
+            </div>
+            <div class="bg-red-50 text-red-700 py-1.5 px-2 rounded-lg font-bold border border-red-200/60">
+              <span id="stat-belum" class="block text-sm">0</span> Belum
+            </div>
           </div>
         </div>
 
@@ -209,6 +218,11 @@
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 w-full text-left">Fokus Kategori</h3>
           <div class="w-44 h-44 relative flex items-center justify-center">
             <canvas id="categoryChart"></canvas>
+            <!-- REVISI NOMOR 1: Placeholder/tampilan jika chart kosong -->
+            <div id="chart-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-2 text-slate-400 text-xs bg-white/90 rounded-full">
+              <span>🏷️</span>
+              <span class="mt-1 font-medium">Belum ada data kategori</span>
+            </div>
           </div>
         </div>
 
@@ -217,7 +231,7 @@
           <div>
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Refleksi Bulan Ini</h3>
             <div id="dash-insight-text" class="mt-3 text-sm text-slate-700 space-y-2">
-              <!-- Render via JS -->
+              <!-- Render via JS dengan placeholder estetik -->
             </div>
           </div>
           <div class="p-3 bg-blue-50 rounded-xl text-xs text-blue-700 font-medium">
@@ -513,7 +527,7 @@
       renderCalendarTab();
     }
 
-    // TAB 3: DASHBOARD SUPER CLEAN
+    // TAB 3: DASHBOARD REVISED
     function renderDashboardTab() {
       const m = parseInt(document.getElementById('dash-month').value);
       const y = parseInt(document.getElementById('dash-year').value);
@@ -533,17 +547,21 @@
       document.getElementById('dash-overall-rate').innerText = `${overallRate}%`;
       document.getElementById('dash-overall-bar').style.width = `${overallRate}%`;
 
-      document.getElementById('dash-status-pills').innerHTML = `
-        <span class="text-emerald-600 font-bold">🟢 ${selesai} Selesai</span>
-        <span class="text-amber-600 font-bold">🟡 ${progress} Progress</span>
-        <span class="text-red-600 font-bold">🔴 ${belum} Belum</span>
-      `;
+      // Update angka pada badge kapsul status
+      document.getElementById('stat-selesai').innerText = selesai;
+      document.getElementById('stat-progress').innerText = progress;
+      document.getElementById('stat-belum').innerText = belum;
 
       renderCategoryChart(monthActivities);
 
       const insightContainer = document.getElementById('dash-insight-text');
       if (total === 0) {
-        insightContainer.innerHTML = `<p class="text-slate-400">Belum ada data aktivitas untuk bulan ini.</p>`;
+        insightContainer.innerHTML = `
+          <div class="py-4 text-center text-slate-400 border border-dashed border-slate-200 rounded-xl px-2">
+            <p class="text-xs">✨ Belum ada data aktivitas untuk bulan ini.</p>
+            <p class="text-[11px] mt-1 text-slate-400">Yuk, mulai catat aktivitas pertamamu di tab <b>Aktivitas Hari Ini</b>!</p>
+          </div>
+        `;
       } else {
         const topCategory = getTopCategory(monthActivities);
         insightContainer.innerHTML = `
@@ -569,6 +587,14 @@
       const ctx = document.getElementById('categoryChart').getContext('2d');
       const categories = ['Outfit', 'Belajar', 'Praktek', 'Riset', 'Kerja', 'Olahraga', 'Habit'];
       const dataCounts = categories.map(cat => monthActivities.filter(a => a.kategori === cat).length);
+      const totalCount = monthActivities.length;
+
+      const emptyStateEl = document.getElementById('chart-empty-state');
+      if (totalCount === 0) {
+        emptyStateEl.classList.remove('hidden');
+      } else {
+        emptyStateEl.classList.add('hidden');
+      }
 
       if (categoryChartInstance) {
         categoryChartInstance.destroy();
@@ -579,8 +605,8 @@
         data: {
           labels: categories,
           datasets: [{
-            data: dataCounts,
-            backgroundColor: ['#e7e5e4', '#10b981', '#0284c7', '#a855f7', '#2563eb', '#f97316', '#ec4899'],
+            data: totalCount === 0 ? [1] : dataCounts,
+            backgroundColor: totalCount === 0 ? ['#f1f5f9'] : ['#e7e5e4', '#10b981', '#0284c7', '#a855f7', '#2563eb', '#f97316', '#ec4899'],
             borderWidth: 2,
             borderColor: '#ffffff'
           }]
@@ -632,6 +658,7 @@
       closeModal();
       renderTodayTable();
       renderCalendarTab();
+      renderDashboardTab();
     }
 
     function getKategoriEmoji(kat) {
@@ -700,12 +727,13 @@
         saveData();
         renderTodayTable();
         renderCalendarTab();
+        renderDashboardTab();
       }
     }
 
     window.onload = function() {
       initRealTimeDropdowns();
-      renderTodayTable();
+      renderDashboardTab();
     };
   </script>
 </body>
