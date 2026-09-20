@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Daily Activity App</title>
-  <!-- Favicon / Ikon Tab Browser yang Relate dengan Aplikasi -->
+  <!-- Favicon / Ikon Tab Browser -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js untuk grafik visual -->
@@ -68,8 +68,9 @@
           <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
             <span>➕</span> Tambah Baris Kosong
           </button>
-          <button onclick="resetDefaultData()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg text-sm font-medium transition">
-            🔄 Reset Data Contoh
+          <!-- Tombol Reset diubah menjadi Hapus Semua Data -->
+          <button onclick="removeAllData()" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+            <span>🗑️</span> Hapus Semua Data
           </button>
         </div>
         <div class="flex flex-wrap gap-2 w-full md:w-auto">
@@ -298,12 +299,8 @@
     const realTimeMonth = now.getMonth();
     const realTimeDateStr = now.toISOString().split('T')[0];
 
-    const initialData = [
-      { id: '1', tanggal: realTimeDateStr, hari: getNamaHari(realTimeDateStr), aktivitas: 'Menyiapkan opsi outfit unisex mingguan', kategori: 'Outfit', status: 'Selesai', catatan: 'Kaos polos & wide pants', evaluasi: 'Praktis dan hemat waktu' },
-      { id: '2', tanggal: realTimeDateStr, hari: getNamaHari(realTimeDateStr), aktivitas: 'Workout 30 menit & cardio', kategori: 'Olahraga', status: 'On Progress', catatan: 'Target konsisten 3x seminggu', evaluasi: 'Pemanasan cukup' }
-    ];
-
-    let activities = JSON.parse(localStorage.getItem('daily_activities_db')) || initialData;
+    // Default data awal kosong atau bisa diisi list kosong [] jika ingin langsung bersih
+    let activities = JSON.parse(localStorage.getItem('daily_activities_db')) || [];
     let selectedCalDate = null;
     let categoryChartInstance = null;
 
@@ -547,10 +544,8 @@
         <span class="text-red-600 font-bold">🔴 ${belum} Belum</span>
       `;
 
-      // Render Donut Chart
       renderCategoryChart(monthActivities);
 
-      // Render Insight Text
       const insightContainer = document.getElementById('dash-insight-text');
       if (total === 0) {
         insightContainer.innerHTML = `<p class="text-slate-400">Belum ada data aktivitas untuk bulan ini.</p>`;
@@ -713,11 +708,13 @@
       }
     }
 
-    function resetDefaultData() {
-      if (confirm('Kembalikan ke data contoh?')) {
-        activities = [...initialData];
+    function removeAllData() {
+      if (confirm('Yakin ingin menghapus seluruh data aktivitas? Tindakan ini tidak dapat dibatalkan.')) {
+        activities = [];
         saveData();
         renderTodayTable();
+        renderCalendarTab();
+        renderDashboardTab();
       }
     }
 
