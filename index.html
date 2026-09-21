@@ -68,18 +68,14 @@
           <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
             <span>➕</span> Tambah Baris Kosong
           </button>
+          <button onclick="openCategoryModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-300">
+            <span>⚙️</span> Kelola Kategori & Emote
+          </button>
         </div>
         <div class="flex flex-wrap gap-2 w-full md:w-auto">
           <input type="text" id="search-input" oninput="renderTodayTable()" placeholder="🔍 Cari aktivitas..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
           <select id="filter-kategori" onchange="renderTodayTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
             <option value="">Semua Kategori</option>
-            <option value="Outfit">👕 Outfit</option>
-            <option value="Belajar">📚 Belajar</option>
-            <option value="Praktek">🛠️ Praktek</option>
-            <option value="Riset">💡 Riset</option>
-            <option value="Kerja">💼 Kerja</option>
-            <option value="Olahraga">🏋️ Olahraga</option>
-            <option value="Habit">🧴 Habit</option>
           </select>
           <select id="filter-status" onchange="renderTodayTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
             <option value="">Semua Status</option>
@@ -199,7 +195,6 @@
           <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
             <div id="dash-overall-bar" class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: 0%"></div>
           </div>
-          <!-- REVISI NOMOR 3: Indikator status bentuk badge kapsul pastel -->
           <div id="dash-status-pills" class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-100 text-xs">
             <div class="bg-emerald-50 text-emerald-700 py-1.5 px-2 rounded-lg font-bold border border-emerald-200/60">
               <span id="stat-selesai" class="block text-sm">0</span> Selesai
@@ -218,7 +213,6 @@
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 w-full text-left">Fokus Kategori</h3>
           <div class="w-44 h-44 relative flex items-center justify-center">
             <canvas id="categoryChart"></canvas>
-            <!-- REVISI NOMOR 1: Placeholder/tampilan jika chart kosong -->
             <div id="chart-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-2 text-slate-400 text-xs bg-white/90 rounded-full">
               <span>🏷️</span>
               <span class="mt-1 font-medium">Belum ada data kategori</span>
@@ -230,9 +224,7 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
           <div>
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Refleksi Bulan Ini</h3>
-            <div id="dash-insight-text" class="mt-3 text-sm text-slate-700 space-y-2">
-              <!-- Render via JS dengan placeholder estetik -->
-            </div>
+            <div id="dash-insight-text" class="mt-3 text-sm text-slate-700 space-y-2"></div>
           </div>
           <div class="p-3 bg-blue-50 rounded-xl text-xs text-blue-700 font-medium">
             💡 <i>Tetap jaga konsistensi target aktivitas harianmu!</i>
@@ -244,7 +236,7 @@
 
   </div>
 
-  <!-- MODAL DIALOG INPUT -->
+  <!-- MODAL DIALOG INPUT AKTIVITAS -->
   <div id="modal-add" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4">
       <h3 class="text-lg font-bold text-slate-800">➕ Tambah Aktivitas Baru</h3>
@@ -261,13 +253,7 @@
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
             <select id="modal-kategori" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-              <option value="Outfit">👕 Outfit</option>
-              <option value="Belajar">📚 Belajar</option>
-              <option value="Praktek">🛠️ Praktek</option>
-              <option value="Riset">💡 Riset</option>
-              <option value="Kerja">💼 Kerja</option>
-              <option value="Olahraga">🏋️ Olahraga</option>
-              <option value="Habit">🧴 Habit</option>
+              <!-- Render via JS -->
             </select>
           </div>
           <div>
@@ -295,6 +281,58 @@
     </div>
   </div>
 
+  <!-- MODAL KELOLA KATEGORI & EMOTE -->
+  <div id="modal-category" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-5">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 class="text-lg font-bold text-slate-800">⚙️ Kelola Kategori & Emote</h3>
+        <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+
+      <!-- Form Tambah Kategori Baru -->
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Tambah Kategori Baru</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Emote / Ikon</label>
+            <input type="text" id="new-cat-emoji" placeholder="Contoh: 🚀" maxlength="4" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white text-center">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Kategori</label>
+            <input type="text" id="new-cat-name" placeholder="Contoh: Project" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Pilih Tema Warna</label>
+          <select id="new-cat-color" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+            <option value="bg-blue-100 text-blue-800 border-blue-300">🔵 Biru</option>
+            <option value="bg-emerald-100 text-emerald-800 border-emerald-300">🟢 Hijau</option>
+            <option value="bg-purple-100 text-purple-800 border-purple-300">🟣 Ungu</option>
+            <option value="bg-orange-100 text-orange-800 border-orange-300">🟠 Oranye</option>
+            <option value="bg-pink-100 text-pink-800 border-pink-300">🩷 Pink</option>
+            <option value="bg-sky-100 text-sky-800 border-sky-300">🩵 Biru Langit</option>
+            <option value="bg-stone-100 text-stone-700 border-stone-300">⚪ Abu-abu / Stone</option>
+          </select>
+        </div>
+        <button onclick="addNewCategory()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-semibold transition">
+          + Tambahkan Kategori
+        </button>
+      </div>
+
+      <!-- Daftar Kategori Yang Ada -->
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Daftar Kategori Saat Ini</h4>
+        <div id="category-list-container" class="max-h-48 overflow-y-auto space-y-2 pr-1">
+          <!-- Render via JS -->
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeCategoryModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium">Selesai</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const listHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
@@ -310,11 +348,24 @@
     const realTimeDateStr = now.toISOString().split('T')[0];
 
     let activities = JSON.parse(localStorage.getItem('daily_activities_db')) || [];
+    
+    // Default categories with emojis & colors
+    let categories = JSON.parse(localStorage.getItem('daily_categories_db')) || [
+      { name: 'Outfit', emoji: '👕', style: 'bg-stone-100 text-stone-700 border-stone-300' },
+      { name: 'Belajar', emoji: '📚', style: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+      { name: 'Praktek', emoji: '🛠️', style: 'bg-sky-100 text-sky-800 border-sky-300' },
+      { name: 'Riset', emoji: '💡', style: 'bg-purple-100 text-purple-800 border-purple-300' },
+      { name: 'Kerja', emoji: '💼', style: 'bg-blue-100 text-blue-800 border-blue-300' },
+      { name: 'Olahraga', emoji: '🏋️', style: 'bg-orange-100 text-orange-800 border-orange-300' },
+      { name: 'Habit', emoji: '🧴', style: 'bg-pink-100 text-pink-800 border-pink-300' }
+    ];
+
     let selectedCalDate = null;
     let categoryChartInstance = null;
 
     function saveData() {
       localStorage.setItem('daily_activities_db', JSON.stringify(activities));
+      localStorage.setItem('daily_categories_db', JSON.stringify(categories));
     }
 
     function switchTab(activeTab) {
@@ -330,7 +381,10 @@
         }
       });
 
-      if (activeTab === 'today') renderTodayTable();
+      if (activeTab === 'today') {
+        populateCategoryDropdowns();
+        renderTodayTable();
+      }
       if (activeTab === 'calendar') renderCalendarTab();
       if (activeTab === 'dashboard') renderDashboardTab();
     }
@@ -340,6 +394,7 @@
       document.getElementById('cal-year').value = realTimeYear;
       document.getElementById('dash-month').value = realTimeMonth;
       document.getElementById('dash-year').value = realTimeYear;
+      populateCategoryDropdowns();
     }
 
     function setCalendarToToday() {
@@ -349,8 +404,29 @@
       renderCalendarTab();
     }
 
+    function populateCategoryDropdowns() {
+      // Filter select di atas tabel
+      const filterKat = document.getElementById('filter-kategori');
+      const currentFilterVal = filterKat.value;
+      filterKat.innerHTML = '<option value="">Semua Kategori</option>';
+      categories.forEach(c => {
+        filterKat.innerHTML += `<option value="${c.name}">${c.emoji} ${c.name}</option>`;
+      });
+      filterKat.value = currentFilterVal;
+
+      // Modal select tambah aktivitas
+      const modalKat = document.getElementById('modal-kategori');
+      const currentModalVal = modalKat.value;
+      modalKat.innerHTML = '';
+      categories.forEach(c => {
+        modalKat.innerHTML += `<option value="${c.name}">${c.emoji} ${c.name}</option>`;
+      });
+      if (currentModalVal) modalKat.value = currentModalVal;
+    }
+
     // TAB 1: SPREADSHEET TABLE
     function renderTodayTable() {
+      populateCategoryDropdowns();
       const tbody = document.getElementById('today-table-body');
       const search = (document.getElementById('search-input')?.value || '').toLowerCase();
       const filterKat = document.getElementById('filter-kategori')?.value || '';
@@ -373,6 +449,14 @@
       }
 
       filtered.forEach((item) => {
+        const catObj = categories.find(c => c.name === item.kategori) || { emoji: '📌', style: 'bg-slate-100 text-slate-700 border-slate-300' };
+        
+        // Buat pilihan dropdown kategori dinamis per baris
+        let optionsHtml = '';
+        categories.forEach(c => {
+          optionsHtml += `<option value="${c.name}" ${item.kategori === c.name ? 'selected' : ''}>${c.emoji} ${c.name}</option>`;
+        });
+
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50 transition-colors";
         tr.innerHTML = `
@@ -384,14 +468,8 @@
             <div contenteditable="true" onblur="updateCell('${item.id}', 'aktivitas', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-800 font-medium">${item.aktivitas}</div>
           </td>
           <td class="p-2 text-center">
-            <select onchange="updateCell('${item.id}', 'kategori', this.value)" class="w-full px-2 py-1 rounded-full text-xs font-semibold cursor-pointer border ${getKategoriStyle(item.kategori)}">
-              <option value="Outfit" ${item.kategori === 'Outfit' ? 'selected' : ''}>👕 Outfit</option>
-              <option value="Belajar" ${item.kategori === 'Belajar' ? 'selected' : ''}>📚 Belajar</option>
-              <option value="Praktek" ${item.kategori === 'Praktek' ? 'selected' : ''}>🛠️ Praktek</option>
-              <option value="Riset" ${item.kategori === 'Riset' ? 'selected' : ''}>💡 Riset</option>
-              <option value="Kerja" ${item.kategori === 'Kerja' ? 'selected' : ''}>💼 Kerja</option>
-              <option value="Olahraga" ${item.kategori === 'Olahraga' ? 'selected' : ''}>🏋️ Olahraga</option>
-              <option value="Habit" ${item.kategori === 'Habit' ? 'selected' : ''}>🧴 Habit</option>
+            <select onchange="updateCell('${item.id}', 'kategori', this.value)" class="w-full px-2 py-1 rounded-full text-xs font-semibold cursor-pointer border ${catObj.style}">
+              ${optionsHtml}
             </select>
           </td>
           <td class="p-2 text-center">
@@ -456,9 +534,10 @@
         let activityPreview = '';
         if (dayTasks.length > 0) {
           const firstTask = dayTasks[0];
+          const catObj = categories.find(c => c.name === firstTask.kategori) || { emoji: '📌' };
           activityPreview = `
             <div class="mt-0.5 w-full truncate text-[10px] font-medium opacity-90">
-              ${getKategoriEmoji(firstTask.kategori)} ${firstTask.aktivitas}
+              ${catObj.emoji} ${firstTask.aktivitas}
             </div>
             ${dayTasks.length > 1 ? `<span class="text-[8px] opacity-60 font-semibold">+${dayTasks.length - 1} lagi</span>` : ''}
           `;
@@ -502,11 +581,12 @@
       }
 
       filteredTasks.forEach(item => {
+        const catObj = categories.find(c => c.name === item.kategori) || { emoji: '📌', style: 'bg-slate-100 text-slate-700 border-slate-300' };
         const card = document.createElement('div');
         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5";
         card.innerHTML = `
           <div class="flex flex-wrap items-center justify-between gap-1 border-b border-slate-200/60 pb-1.5">
-            <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${getKategoriStyle(item.kategori)}">${item.kategori}</span>
+            <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${catObj.style}">${catObj.emoji} ${item.kategori}</span>
             <div class="flex items-center gap-1.5">
               <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${getStatusStyle(item.status)}">${item.status}</span>
               <button onclick="deleteRow('${item.id}')" title="Hapus" class="text-slate-400 hover:text-red-600 text-xs">🗑️</button>
@@ -527,7 +607,7 @@
       renderCalendarTab();
     }
 
-    // TAB 3: DASHBOARD REVISED
+    // TAB 3: DASHBOARD
     function renderDashboardTab() {
       const m = parseInt(document.getElementById('dash-month').value);
       const y = parseInt(document.getElementById('dash-year').value);
@@ -547,7 +627,6 @@
       document.getElementById('dash-overall-rate').innerText = `${overallRate}%`;
       document.getElementById('dash-overall-bar').style.width = `${overallRate}%`;
 
-      // Update angka pada badge kapsul status
       document.getElementById('stat-selesai').innerText = selesai;
       document.getElementById('stat-progress').innerText = progress;
       document.getElementById('stat-belum').innerText = belum;
@@ -585,8 +664,8 @@
 
     function renderCategoryChart(monthActivities) {
       const ctx = document.getElementById('categoryChart').getContext('2d');
-      const categories = ['Outfit', 'Belajar', 'Praktek', 'Riset', 'Kerja', 'Olahraga', 'Habit'];
-      const dataCounts = categories.map(cat => monthActivities.filter(a => a.kategori === cat).length);
+      const catNames = categories.map(c => c.name);
+      const dataCounts = catNames.map(name => monthActivities.filter(a => a.kategori === name).length);
       const totalCount = monthActivities.length;
 
       const emptyStateEl = document.getElementById('chart-empty-state');
@@ -600,13 +679,15 @@
         categoryChartInstance.destroy();
       }
 
+      const defaultColors = ['#2563eb', '#10b981', '#0284c7', '#a855f7', '#f97316', '#ec4899', '#64748b', '#eab308'];
+
       categoryChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: categories,
+          labels: catNames,
           datasets: [{
             data: totalCount === 0 ? [1] : dataCounts,
-            backgroundColor: totalCount === 0 ? ['#f1f5f9'] : ['#e7e5e4', '#10b981', '#0284c7', '#a855f7', '#2563eb', '#f97316', '#ec4899'],
+            backgroundColor: totalCount === 0 ? ['#f1f5f9'] : catNames.map((_, i) => defaultColors[i % defaultColors.length]),
             borderWidth: 2,
             borderColor: '#ffffff'
           }]
@@ -622,8 +703,72 @@
       });
     }
 
-    // Modal Input Handlers
+    // Modal Kelola Kategori Handlers
+    function openCategoryModal() {
+      renderCategoryListUI();
+      document.getElementById('new-cat-emoji').value = '';
+      document.getElementById('new-cat-name').value = '';
+      document.getElementById('modal-category').classList.remove('hidden');
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('modal-category').classList.add('hidden');
+      populateCategoryDropdowns();
+      renderTodayTable();
+    }
+
+    function renderCategoryListUI() {
+      const container = document.getElementById('category-list-container');
+      container.innerHTML = '';
+
+      categories.forEach((cat, index) => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs";
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-1 rounded-lg border ${cat.style} font-semibold">${cat.emoji} ${cat.name}</span>
+          </div>
+          <div>
+            ${categories.length > 1 ? `<button onclick="deleteCategory(${index})" class="text-slate-400 hover:text-red-600 font-bold px-2 py-1">🗑️ Hapus</button>` : '<span class="text-[10px] text-slate-400">Minimal 1</span>'}
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addNewCategory() {
+      const emoji = document.getElementById('new-cat-emoji').value.trim() || '📌';
+      const name = document.getElementById('new-cat-name').value.trim();
+      const style = document.getElementById('new-cat-color').value;
+
+      if (!name) {
+        alert('Nama kategori tidak boleh kosong!');
+        return;
+      }
+
+      if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert('Kategori dengan nama tersebut sudah ada!');
+        return;
+      }
+
+      categories.push({ name, emoji, style });
+      saveData();
+      renderCategoryListUI();
+      document.getElementById('new-cat-emoji').value = '';
+      document.getElementById('new-cat-name').value = '';
+    }
+
+    function deleteCategory(index) {
+      if (confirm(`Hapus kategori "${categories[index].name}"?`)) {
+        categories.splice(index, 1);
+        saveData();
+        renderCategoryListUI();
+      }
+    }
+
+    // Modal Input Aktivitas Handlers
     function openAddModalForSelectedDate() {
+      populateCategoryDropdowns();
       document.getElementById('modal-tanggal').value = selectedCalDate || realTimeDateStr;
       document.getElementById('modal-aktivitas').value = '';
       document.getElementById('modal-catatan').value = '';
@@ -661,32 +806,6 @@
       renderDashboardTab();
     }
 
-    function getKategoriEmoji(kat) {
-      switch (kat) {
-        case 'Outfit': return '👕';
-        case 'Belajar': return '📚';
-        case 'Praktek': return '🛠️';
-        case 'Riset': return '💡';
-        case 'Kerja': return '💼';
-        case 'Olahraga': return '🏋️';
-        case 'Habit': return '🧴';
-        default: return '📌';
-      }
-    }
-
-    function getKategoriStyle(kat) {
-      switch (kat) {
-        case 'Outfit': return 'bg-stone-100 text-stone-700 border-stone-300';
-        case 'Belajar': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-        case 'Praktek': return 'bg-sky-100 text-sky-800 border-sky-300';
-        case 'Riset': return 'bg-purple-100 text-purple-800 border-purple-300';
-        case 'Kerja': return 'bg-blue-100 text-blue-800 border-blue-300';
-        case 'Olahraga': return 'bg-orange-100 text-orange-800 border-orange-300';
-        case 'Habit': return 'bg-pink-100 text-pink-800 border-pink-300';
-        default: return 'bg-slate-100 text-slate-700 border-slate-300';
-      }
-    }
-
     function getStatusStyle(stat) {
       switch (stat) {
         case 'Belum': return 'bg-red-100 text-red-800 border-red-300';
@@ -712,7 +831,7 @@
         tanggal: today,
         hari: getNamaHari(today),
         aktivitas: 'Ketik aktivitas di sini...',
-        kategori: 'Belajar',
+        kategori: categories[0] ? categories[0].name : 'Umum',
         status: 'Belum',
         catatan: '-',
         evaluasi: '-'
