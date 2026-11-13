@@ -3,422 +3,480 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Activity App</title>
-  <!-- Favicon / Ikon Tab Browser -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+  <title>Daily Activity & Routine Tracker</title>
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js untuk grafik visual -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            zinc: {
+              850: '#1f1f23',
+              950: '#0c0c0e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f8fafc;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #fafafa;
+      color: #18181b;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .sheet-table th, .sheet-table td {
-      border: 1px solid #e2e8f0;
+    
+    /* Subtle custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
     }
-    .sheet-table th {
-      background-color: #dbeafe;
-      color: #1e3a8a;
-      font-weight: 700;
+    ::-webkit-scrollbar-track {
+      background: transparent;
     }
-    .editable-cell {
+    ::-webkit-scrollbar-thumb {
+      background: #e4e4e7;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d4d4d8;
+    }
+
+    .clean-cell {
       outline: none;
-      border: 1px transparent solid;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
     }
-    .editable-cell:focus {
-      border-color: #2563eb;
+    .clean-cell:focus {
+      border-color: #18181b;
       background-color: #ffffff;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+      box-shadow: 0 0 0 1px #18181b;
+    }
+
+    /* Minimalist checkbox animation */
+    .task-check-circle {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .task-check-circle:hover {
+      transform: scale(1.08);
     }
   </style>
 </head>
-<body class="p-4 md:p-8 min-h-screen text-slate-800">
+<body class="p-3 sm:p-6 md:p-8 min-h-screen">
 
-  <div class="max-w-7xl mx-auto space-y-6">
+  <div class="max-w-6xl mx-auto space-y-6">
     
-    <!-- Navigation Header -->
-    <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl text-xl">📅</div>
+    <!-- TOP NOTION-STYLE NAVIGATION HEADER -->
+    <header class="bg-white p-4 sm:p-5 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5 w-full md:w-auto">
+        <div class="w-10 h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          ✓
+        </div>
         <div>
-          <h1 class="text-xl font-bold text-slate-800">Daily Activity App</h1>
-          <p class="text-xs text-slate-500">Aplikasi pelacak aktivitas harian & produktivitas pribadi.</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-zinc-900">Daily Activity</h1>
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200/60 font-medium">minimal</span>
+          </div>
+          <p id="header-today-label" class="text-xs text-zinc-500 font-medium">Memuat tanggal...</p>
         </div>
       </div>
 
-      <!-- 3 Navigation Tabs -->
-      <div class="flex bg-slate-100 p-1.5 rounded-xl w-full md:w-auto">
-        <button id="nav-today" onclick="switchTab('today')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900">
-          📝 Aktivitas Hari Ini
+      <!-- Segmented Navigation Controls -->
+      <nav class="flex bg-zinc-100/90 p-1 rounded-xl w-full md:w-auto border border-zinc-200/50">
+        <button id="nav-today" onclick="switchTab('today')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-zinc-900 shadow-sm">
+          Aktivitas
         </button>
-        <button id="nav-calendar" onclick="switchTab('calendar')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900">
-          📅 Kalender Bulanan
+        <button id="nav-calendar" onclick="switchTab('calendar')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition text-zinc-500 hover:text-zinc-900">
+          Kalender
         </button>
-        <button id="nav-dashboard" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-blue-600 shadow-sm">
-          📊 Dashboard
+        <button id="nav-dashboard" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition text-zinc-500 hover:text-zinc-900">
+          Ringkasan
         </button>
-      </div>
-    </div>
+      </nav>
+    </header>
 
-    <!-- TAB 1: SPREADSHEET MAIN VIEW -->
-    <div id="view-today" class="space-y-6 hidden">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex flex-wrap gap-2">
-          <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
-            <span>➕</span> Tambah Baris
+    <!-- TAB 1: SPREADSHEET & CHECKLIST TIMELINE (THINGS 3 / NOTION) -->
+    <main id="view-today" class="space-y-4">
+      
+      <!-- Action Toolbar -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-zinc-200/80 shadow-sm">
+        
+        <!-- Left Buttons: Primary Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="addBlankRow()" class="bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition shadow-sm flex items-center gap-2">
+            <span>+</span> Tambah Aktivitas
           </button>
-          <button onclick="applyRoutineToday()" title="Muat seluruh aktivitas rutin ke hari ini" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
-            <span>🔁</span> Muat Rutinitas Hari Ini
+          
+          <button onclick="applyRoutineToday()" title="Muat seluruh rutinitas harian ke hari ini" class="bg-zinc-100 hover:bg-zinc-200/80 text-zinc-800 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-1.5 border border-zinc-200/70">
+            <span>🔁</span> Muat Rutinitas
           </button>
-          <button onclick="openRoutineModal()" title="Atur template rutinitas harian" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-300">
-            <span>📋</span> Template Rutinitas
+
+          <button onclick="openRoutineModal()" title="Kelola template rutinitas" class="hover:bg-zinc-100 text-zinc-600 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-1.5">
+            <span>📋</span> Template
           </button>
-          <button onclick="openCategoryModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-300">
+
+          <button onclick="openCategoryModal()" title="Kelola kategori" class="hover:bg-zinc-100 text-zinc-600 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-1.5">
             <span>⚙️</span> Kategori
           </button>
         </div>
-        <div class="flex flex-wrap gap-2 w-full md:w-auto">
-          <input type="text" id="search-input" oninput="renderTodayTable()" placeholder="🔍 Cari aktivitas..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
-          <select id="filter-kategori" onchange="renderTodayTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
+
+        <!-- Right Inputs: Search & Filters -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative flex-1 sm:flex-none">
+            <input type="text" id="search-input" oninput="renderTodayTable()" placeholder="Cari aktivitas..." class="w-full sm:w-48 pl-8 pr-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-zinc-900 transition">
+            <span class="absolute left-2.5 top-2 text-zinc-400 text-xs">🔍</span>
+          </div>
+
+          <select id="filter-kategori" onchange="renderTodayTable()" class="px-2.5 py-1.5 border border-zinc-200/80 rounded-xl text-xs sm:text-sm bg-zinc-50 text-zinc-700 focus:outline-none focus:bg-white focus:border-zinc-900 transition">
             <option value="">Semua Kategori</option>
           </select>
-          <select id="filter-status" onchange="renderTodayTable()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
+
+          <select id="filter-status" onchange="renderTodayTable()" class="px-2.5 py-1.5 border border-zinc-200/80 rounded-xl text-xs sm:text-sm bg-zinc-50 text-zinc-700 focus:outline-none focus:bg-white focus:border-zinc-900 transition">
             <option value="">Semua Status</option>
-            <option value="Belum">🔴 Belum</option>
-            <option value="On Progress">🟡 On Progress</option>
-            <option value="Selesai">🟢 Selesai</option>
+            <option value="Belum">Belum</option>
+            <option value="On Progress">On Progress</option>
+            <option value="Selesai">Selesai</option>
           </select>
+        </div>
+
+      </div>
+
+      <!-- Main Clean Minimalist Table / List -->
+      <div class="bg-white rounded-2xl border border-zinc-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-zinc-50/80 border-b border-zinc-200/80 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+                <th class="py-3 px-3 w-10 text-center">Status</th>
+                <th class="py-3 px-3 w-32">Tanggal</th>
+                <th class="py-3 px-3 w-36 text-center">Waktu</th>
+                <th class="py-3 px-3 min-w-[220px]">Aktivitas</th>
+                <th class="py-3 px-3 w-36 text-center">Kategori</th>
+                <th class="py-3 px-3 min-w-[150px]">Catatan</th>
+                <th class="py-3 px-3 min-w-[150px]">Evaluasi</th>
+                <th class="py-3 px-3 w-12 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="today-table-body" class="divide-y divide-zinc-100">
+              <!-- Render via JavaScript -->
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- Spreadsheet Table -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-        <table class="w-full text-left border-collapse sheet-table text-sm">
-          <thead>
-            <tr>
-              <th class="p-3 w-32 text-center">Tanggal</th>
-              <th class="p-3 w-24 text-center">Hari</th>
-              <th class="p-3 w-36 text-center">⏰ Jam / Waktu</th>
-              <th class="p-3 min-w-[200px]">Aktivitas</th>
-              <th class="p-3 w-40 text-center">Kategori</th>
-              <th class="p-3 w-36 text-center">Status</th>
-              <th class="p-3 min-w-[170px]">Catatan</th>
-              <th class="p-3 min-w-[170px]">Evaluasi</th>
-              <th class="p-3 w-16 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="today-table-body">
-            <!-- Render via JS -->
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </main>
 
-    <!-- TAB 2: KALENDER BULANAN -->
-    <div id="view-calendar" class="space-y-6 hidden">
+    <!-- TAB 2: KALENDER BULANAN (MINIMAL NOTION) -->
+    <section id="view-calendar" class="space-y-6 hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <!-- Left: Clean Calendar Grid -->
+        <div class="lg:col-span-7 bg-white p-5 sm:p-6 rounded-2xl border border-zinc-200/80 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
             <div>
-              <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <span>📅</span> Kalender Bulanan
-              </h2>
-              <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 mt-1">
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Selesai</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Progress</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400"></span>Belum</span>
+              <h2 class="font-bold text-zinc-900 text-sm sm:text-base tracking-tight">Kalender Aktivitas</h2>
+              <div class="flex items-center gap-3 text-[11px] text-zinc-400 mt-1">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-zinc-900"></span>Selesai</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Progress</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-zinc-300"></span>Belum</span>
               </div>
             </div>
             
-            <div class="flex items-center gap-1.5">
-              <button onclick="setCalendarToToday()" class="px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold transition">
+            <div class="flex items-center gap-2">
+              <button onclick="setCalendarToToday()" class="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 rounded-lg text-xs font-medium transition">
                 Hari Ini
               </button>
-              <select id="cal-month" onchange="renderCalendarTab()" class="px-2 py-1 border border-slate-300 rounded-lg text-xs font-medium bg-white">
-                <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option>
-                <option value="4">Mei</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Agu</option>
-                <option value="8">Sep</option><option value="9">Okt</option><option value="10">Nov</option><option value="11">Des</option>
+              <select id="cal-month" onchange="renderCalendarTab()" class="px-2 py-1 border border-zinc-200 rounded-lg text-xs font-medium bg-zinc-50 text-zinc-700">
+                <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option>
+                <option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option>
+                <option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
               </select>
-              <select id="cal-year" onchange="renderCalendarTab()" class="px-2 py-1 border border-slate-300 rounded-lg text-xs font-medium bg-white">
+              <select id="cal-year" onchange="renderCalendarTab()" class="px-2 py-1 border border-zinc-200 rounded-lg text-xs font-medium bg-zinc-50 text-zinc-700">
                 <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option>
               </select>
             </div>
           </div>
 
-          <div class="grid grid-cols-7 gap-1.5 text-center text-[11px] font-bold text-slate-400 py-1">
+          <div class="grid grid-cols-7 gap-1.5 text-center text-[11px] font-semibold text-zinc-400 py-1 uppercase tracking-wider">
             <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
           </div>
           <div id="calendar-grid-full" class="grid grid-cols-7 gap-1.5"></div>
         </div>
 
-        <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div class="flex flex-col gap-2 border-b border-slate-100 pb-3">
+        <!-- Right: Detail Task List on Selected Date -->
+        <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-2xl border border-zinc-200/80 shadow-sm space-y-4">
+          <div class="flex flex-col gap-2 border-b border-zinc-100 pb-3">
             <div class="flex items-center justify-between">
-              <h3 id="cal-selected-date-title" class="font-bold text-slate-800 text-sm">📌 Keterangan Aktivitas</h3>
-              <button onclick="clearCalendarSelection()" class="text-xs text-blue-600 hover:underline">Lihat Semua Bulan Ini</button>
+              <h3 id="cal-selected-date-title" class="font-bold text-zinc-900 text-sm sm:text-base">Aktivitas</h3>
+              <button onclick="clearCalendarSelection()" class="text-xs text-zinc-500 hover:text-zinc-900 underline font-medium">Bulan Ini</button>
             </div>
-            <button id="btn-add-on-date" onclick="openAddModalForSelectedDate()" class="hidden w-full text-xs bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition text-center">
-              ➕ Tambah Aktivitas di Tanggal Ini
+            <button id="btn-add-on-date" onclick="openAddModalForSelectedDate()" class="hidden w-full text-xs bg-zinc-900 hover:bg-zinc-800 text-white py-2 rounded-xl font-medium transition text-center shadow-sm">
+              + Tambah di Tanggal Ini
             </button>
           </div>
-          <div id="cal-activity-list" class="space-y-3 text-sm max-h-[500px] overflow-y-auto pr-1"></div>
+          <div id="cal-activity-list" class="space-y-2.5 text-sm max-h-[500px] overflow-y-auto pr-1"></div>
         </div>
 
       </div>
-    </div>
+    </section>
 
-    <!-- TAB 3: DASHBOARD SUPER CLEAN & ELEGAN -->
-    <div id="view-dashboard" class="space-y-6">
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
-        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-          <span>📊</span> Ringkasan Produktivitas Bulan Ini
-        </h2>
+    <!-- TAB 3: DASHBOARD & RINGKASAN PRODUKTIVITAS -->
+    <section id="view-dashboard" class="space-y-6 hidden">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-zinc-900 tracking-tight">Ringkasan Produktivitas</h2>
+          <p class="text-xs text-zinc-500">Evaluasi pencapaian dan konsistensi harian Anda.</p>
+        </div>
         <div class="flex gap-2">
-          <select id="dash-month" onchange="renderDashboardTab()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white">
+          <select id="dash-month" onchange="renderDashboardTab()" class="px-3 py-1.5 border border-zinc-200 rounded-xl text-xs sm:text-sm font-medium bg-zinc-50 text-zinc-700">
             <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option>
             <option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option>
             <option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
           </select>
-          <select id="dash-year" onchange="renderDashboardTab()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-medium bg-white">
+          <select id="dash-year" onchange="renderDashboardTab()" class="px-3 py-1.5 border border-zinc-200 rounded-xl text-xs sm:text-sm font-medium bg-zinc-50 text-zinc-700">
             <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option>
           </select>
         </div>
       </div>
 
-      <!-- Main Dashboard Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Main Clean Metric Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         
-        <!-- Card 1: Success Rate Gauge -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+        <!-- Card 1: Success Rate -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col justify-between space-y-4">
           <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Tingkat Penyelesaian</h3>
+            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Tingkat Penyelesaian</h3>
             <div class="flex items-baseline gap-2 mt-2">
-              <span id="dash-overall-rate" class="text-4xl font-extrabold text-blue-600">0%</span>
-              <span class="text-xs text-slate-500 font-medium">Selesai Bulan Ini</span>
+              <span id="dash-overall-rate" class="text-5xl font-extrabold text-zinc-900 tracking-tight">0%</span>
+              <span class="text-xs text-zinc-400 font-medium">selesai bulan ini</span>
             </div>
           </div>
-          <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
-            <div id="dash-overall-bar" class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+          <div class="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+            <div id="dash-overall-bar" class="h-full bg-zinc-900 rounded-full transition-all duration-500" style="width: 0%"></div>
           </div>
-          <div id="dash-status-pills" class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-100 text-xs">
-            <div class="bg-emerald-50 text-emerald-700 py-1.5 px-2 rounded-lg font-bold border border-emerald-200/60">
-              <span id="stat-selesai" class="block text-sm">0</span> Selesai
+          <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-zinc-100 text-xs">
+            <div class="bg-zinc-50 text-zinc-800 py-2 px-2 rounded-xl border border-zinc-200/60 font-medium">
+              <span id="stat-selesai" class="block text-sm font-bold text-zinc-900">0</span> Selesai
             </div>
-            <div class="bg-amber-50 text-amber-700 py-1.5 px-2 rounded-lg font-bold border border-amber-200/60">
-              <span id="stat-progress" class="block text-sm">0</span> Progress
+            <div class="bg-zinc-50 text-zinc-800 py-2 px-2 rounded-xl border border-zinc-200/60 font-medium">
+              <span id="stat-progress" class="block text-sm font-bold text-amber-600">0</span> Progress
             </div>
-            <div class="bg-red-50 text-red-700 py-1.5 px-2 rounded-lg font-bold border border-red-200/60">
-              <span id="stat-belum" class="block text-sm">0</span> Belum
+            <div class="bg-zinc-50 text-zinc-800 py-2 px-2 rounded-xl border border-zinc-200/60 font-medium">
+              <span id="stat-belum" class="block text-sm font-bold text-zinc-400">0</span> Belum
             </div>
           </div>
         </div>
 
-        <!-- Card 2: Donut Chart Kategori -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center space-y-2 md:col-span-1">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 w-full text-left">Fokus Kategori</h3>
-          <div class="w-44 h-44 relative flex items-center justify-center">
+        <!-- Card 2: Minimalist Category Donut Chart -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col items-center justify-center space-y-2">
+          <h3 class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 w-full text-left">Fokus Kategori</h3>
+          <div class="w-40 h-40 relative flex items-center justify-center my-1">
             <canvas id="categoryChart"></canvas>
-            <div id="chart-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-2 text-slate-400 text-xs bg-white/90 rounded-full">
-              <span>🏷️</span>
-              <span class="mt-1 font-medium">Belum ada data kategori</span>
+            <div id="chart-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-2 text-zinc-400 text-xs bg-white/95 rounded-full">
+              <span class="text-sm">🏷️</span>
+              <span class="mt-1 font-medium">Belum ada data</span>
             </div>
           </div>
         </div>
 
-        <!-- Card 3: Refleksi & Insight -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
+        <!-- Card 3: Minimal Insights -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-sm space-y-3 flex flex-col justify-between">
           <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Refleksi Bulan Ini</h3>
-            <div id="dash-insight-text" class="mt-3 text-sm text-slate-700 space-y-2"></div>
+            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Catatan & Insight</h3>
+            <div id="dash-insight-text" class="mt-3 text-xs sm:text-sm text-zinc-600 space-y-2 font-medium"></div>
           </div>
-          <div class="p-3 bg-blue-50 rounded-xl text-xs text-blue-700 font-medium">
-            💡 <i>Tetap jaga konsistensi target aktivitas harianmu!</i>
+          <div class="p-3 bg-zinc-50 rounded-xl text-xs text-zinc-600 font-medium border border-zinc-200/60">
+            ⚡ <i>"Konsistensi kecil setiap hari menghasilkan lompatan besar."</i>
           </div>
         </div>
 
       </div>
-    </div>
+    </section>
 
   </div>
 
-  <!-- MODAL DIALOG INPUT AKTIVITAS -->
-  <div id="modal-add" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4">
-      <h3 class="text-lg font-bold text-slate-800">➕ Tambah Aktivitas Baru</h3>
+  <!-- MODAL: INPUT AKTIVITAS -->
+  <div id="modal-add" class="fixed inset-0 bg-zinc-950/30 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-zinc-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+        <h3 class="text-base font-bold text-zinc-900 tracking-tight">Tambah Aktivitas</h3>
+        <button onclick="closeModal()" class="text-zinc-400 hover:text-zinc-700 text-sm font-semibold">✕</button>
+      </div>
       <div class="space-y-3">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal</label>
-          <input type="date" id="modal-tanggal" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+          <label class="block text-xs font-medium text-zinc-600 mb-1">Tanggal</label>
+          <input type="date" id="modal-tanggal" class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-zinc-900">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Aktivitas</label>
-          <input type="text" id="modal-aktivitas" placeholder="Contoh: Workout 30 Menit" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+          <label class="block text-xs font-medium text-zinc-600 mb-1">Aktivitas</label>
+          <input type="text" id="modal-aktivitas" placeholder="Contoh: Belajar & Riset 45 Menit" class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-zinc-900">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">⏰ Jam Mulai</label>
-            <input type="time" id="modal-jam-mulai" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+            <label class="block text-xs font-medium text-zinc-600 mb-1">Jam Mulai</label>
+            <input type="time" id="modal-jam-mulai" class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-zinc-900">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">⏰ Jam Selesai</label>
-            <input type="time" id="modal-jam-selesai" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+            <label class="block text-xs font-medium text-zinc-600 mb-1">Jam Selesai</label>
+            <input type="time" id="modal-jam-selesai" class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-zinc-900">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
-            <select id="modal-kategori" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+            <label class="block text-xs font-medium text-zinc-600 mb-1">Kategori</label>
+            <select id="modal-kategori" class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-zinc-900">
               <!-- Render via JS -->
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
-            <select id="modal-status" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-              <option value="Belum">🔴 Belum</option>
-              <option value="On Progress">🟡 On Progress</option>
-              <option value="Selesai">🟢 Selesai</option>
+            <label class="block text-xs font-medium text-zinc-600 mb-1">Status</label>
+            <select id="modal-status" class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-zinc-900">
+              <option value="Belum">Belum</option>
+              <option value="On Progress">On Progress</option>
+              <option value="Selesai">Selesai</option>
             </select>
           </div>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan</label>
-          <input type="text" id="modal-catatan" placeholder="Catatan opsional..." class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+          <label class="block text-xs font-medium text-zinc-600 mb-1">Catatan</label>
+          <input type="text" id="modal-catatan" placeholder="Catatan opsional..." class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-zinc-900">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Evaluasi</label>
-          <input type="text" id="modal-evaluasi" placeholder="Evaluasi opsional..." class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+          <label class="block text-xs font-medium text-zinc-600 mb-1">Evaluasi</label>
+          <input type="text" id="modal-evaluasi" placeholder="Evaluasi opsional..." class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-zinc-900">
         </div>
       </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium">Batal</button>
-        <button onclick="saveModalData()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Simpan</button>
+      <div class="flex justify-end gap-2 pt-2 border-t border-zinc-100">
+        <button onclick="closeModal()" class="px-4 py-2 bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 rounded-xl text-xs sm:text-sm font-medium transition">Batal</button>
+        <button onclick="saveModalData()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs sm:text-sm font-medium transition shadow-sm">Simpan</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL KELOLA KATEGORI & EMOTE -->
-  <div id="modal-category" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-5">
-      <div class="flex items-center justify-between border-b pb-3">
-        <h3 class="text-lg font-bold text-slate-800">⚙️ Kelola Kategori & Emote</h3>
-        <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+  <!-- MODAL: KELOLA TEMPLATE RUTINITAS -->
+  <div id="modal-routine" class="fixed inset-0 bg-zinc-950/30 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-zinc-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+        <div>
+          <h3 class="text-base font-bold text-zinc-900 tracking-tight">Template Rutinitas Harian</h3>
+          <p class="text-xs text-zinc-500">Aktivitas berulang yang dapat Anda muat sekali klik setiap hari.</p>
+        </div>
+        <button onclick="closeRoutineModal()" class="text-zinc-400 hover:text-zinc-700 text-sm font-semibold">✕</button>
       </div>
 
-      <!-- Form Tambah Kategori Baru -->
-      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Tambah Kategori Baru</h4>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Emote / Ikon</label>
-            <input type="text" id="new-cat-emoji" placeholder="Contoh: 🚀" maxlength="4" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white text-center">
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Kategori</label>
-            <input type="text" id="new-cat-name" placeholder="Contoh: Project" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-          </div>
-        </div>
+      <!-- Form Tambah Rutinitas -->
+      <div class="bg-zinc-50 p-3.5 rounded-xl border border-zinc-200/70 space-y-2.5">
+        <h4 class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Tambah Rutinitas Baru</h4>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Pilih Tema Warna</label>
-          <select id="new-cat-color" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-            <option value="bg-blue-100 text-blue-800 border-blue-300">🔵 Biru</option>
-            <option value="bg-emerald-100 text-emerald-800 border-emerald-300">🟢 Hijau</option>
-            <option value="bg-purple-100 text-purple-800 border-purple-300">🟣 Ungu</option>
-            <option value="bg-orange-100 text-orange-800 border-orange-300">🟠 Oranye</option>
-            <option value="bg-pink-100 text-pink-800 border-pink-300">🩷 Pink</option>
-            <option value="bg-sky-100 text-sky-800 border-sky-300">🩵 Biru Langit</option>
-            <option value="bg-stone-100 text-stone-700 border-stone-300">⚪ Abu-abu / Stone</option>
-          </select>
+          <input type="text" id="new-routine-name" placeholder="Nama rutinitas (misal: Olahraga Pagi)" class="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-zinc-900">
         </div>
-        <button onclick="addNewCategory()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-semibold transition">
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[10px] text-zinc-500 mb-0.5">Jam Mulai</label>
+            <input type="time" id="new-routine-start" class="w-full p-1.5 bg-white border border-zinc-200 rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] text-zinc-500 mb-0.5">Jam Selesai</label>
+            <input type="time" id="new-routine-end" class="w-full p-1.5 bg-white border border-zinc-200 rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] text-zinc-500 mb-0.5">Kategori</label>
+            <select id="new-routine-cat" class="w-full p-1.5 bg-white border border-zinc-200 rounded-lg text-xs">
+              <!-- Render via JS -->
+            </select>
+          </div>
+        </div>
+        <button onclick="addNewRoutine()" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
+          + Simpan ke Template
+        </button>
+      </div>
+
+      <!-- List Rutinitas Tersimpan -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h4 class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Daftar Template</h4>
+          <span id="routine-count-badge" class="text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-full"></span>
+        </div>
+        <div id="routine-list-container" class="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+          <!-- Render via JS -->
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-zinc-100">
+        <button onclick="applyRoutineToday(); closeRoutineModal();" class="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-medium transition shadow-sm">
+          🔁 Terapkan ke Hari Ini
+        </button>
+        <button onclick="closeRoutineModal()" class="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs font-medium">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KELOLA KATEGORI -->
+  <div id="modal-category" class="fixed inset-0 bg-zinc-950/30 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-zinc-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+        <h3 class="text-base font-bold text-zinc-900 tracking-tight">Kelola Kategori</h3>
+        <button onclick="closeCategoryModal()" class="text-zinc-400 hover:text-zinc-700 text-sm font-semibold">✕</button>
+      </div>
+
+      <div class="bg-zinc-50 p-3.5 rounded-xl border border-zinc-200/70 space-y-2.5">
+        <h4 class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Tambah Kategori</h4>
+        <div class="grid grid-cols-4 gap-2">
+          <div>
+            <label class="block text-[10px] text-zinc-500 mb-0.5">Ikon</label>
+            <input type="text" id="new-cat-emoji" placeholder="🎯" maxlength="4" class="w-full p-1.5 text-center bg-white border border-zinc-200 rounded-lg text-xs">
+          </div>
+          <div class="col-span-3">
+            <label class="block text-[10px] text-zinc-500 mb-0.5">Nama Kategori</label>
+            <input type="text" id="new-cat-name" placeholder="Misal: Proyek" class="w-full p-1.5 bg-white border border-zinc-200 rounded-lg text-xs">
+          </div>
+        </div>
+        <button onclick="addNewCategory()" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
           + Tambahkan Kategori
         </button>
       </div>
 
-      <!-- Daftar Kategori Yang Ada -->
       <div class="space-y-2">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Daftar Kategori Saat Ini</h4>
-        <div id="category-list-container" class="max-h-48 overflow-y-auto space-y-2 pr-1">
+        <h4 class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Kategori Saat Ini</h4>
+        <div id="category-list-container" class="max-h-48 overflow-y-auto space-y-1.5 pr-1">
           <!-- Render via JS -->
         </div>
       </div>
 
-      <div class="flex justify-end pt-2">
-        <button onclick="closeCategoryModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium">Selesai</button>
+      <div class="flex justify-end pt-2 border-t border-zinc-100">
+        <button onclick="closeCategoryModal()" class="px-4 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs font-medium">Selesai</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL KELOLA TEMPLATE RUTINITAS -->
-  <div id="modal-routine" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-5">
-      <div class="flex items-center justify-between border-b pb-3">
-        <div>
-          <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <span>🔁</span> Template Rutinitas Harian
-          </h3>
-          <p class="text-xs text-slate-500">Daftar aktivitas yang dapat dimuat otomatis ke hari mana saja.</p>
-        </div>
-        <button onclick="closeRoutineModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-      </div>
-
-      <!-- Form Tambah Rutinitas Baru -->
-      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Tambah Rutinitas ke Template</h4>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Aktivitas Rutin</label>
-          <input type="text" id="new-routine-name" placeholder="Contoh: Olahraga Pagi 30 Menit" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-        </div>
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jam Mulai</label>
-            <input type="time" id="new-routine-start" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jam Selesai</label>
-            <input type="time" id="new-routine-end" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Kategori</label>
-            <select id="new-routine-cat" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-              <!-- Render via JS -->
-            </select>
-          </div>
-        </div>
-        <button onclick="addNewRoutine()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-sm">
-          <span>➕</span> Simpan ke Template Rutinitas
-        </button>
-      </div>
-
-      <!-- Daftar Template Rutinitas -->
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Daftar Rutinitas Tersimpan</h4>
-          <span id="routine-count-badge" class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200"></span>
-        </div>
-        <div id="routine-list-container" class="max-h-52 overflow-y-auto space-y-2 pr-1">
-          <!-- Render via JS -->
-        </div>
-      </div>
-
-      <div class="flex justify-between items-center pt-2 border-t">
-        <button onclick="applyRoutineToday(); closeRoutineModal();" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium shadow-sm flex items-center gap-1.5">
-          <span>🔁</span> Muat ke Hari Ini
-        </button>
-        <button onclick="closeRoutineModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium">Tutup</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm transition-all duration-300 opacity-0 pointer-events-none translate-y-3 border border-slate-700">
-    <span id="toast-icon" class="text-lg">✨</span>
-    <span id="toast-msg" class="font-medium">Notifikasi</span>
+  <!-- FLOATING MINIMAL TOAST -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-zinc-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-medium transition-all duration-300 opacity-0 pointer-events-none translate-y-2 border border-zinc-800">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">Notifikasi</span>
   </div>
 
   <script>
     const listHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const listBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
     function getNamaHari(dateStr) {
       if (!dateStr) return '-';
@@ -431,20 +489,23 @@
     const realTimeMonth = now.getMonth();
     const realTimeDateStr = now.toISOString().split('T')[0];
 
+    // Update Header Date
+    document.getElementById('header-today-label').innerText = `${listHari[now.getDay()]}, ${now.getDate()} ${listBulan[now.getMonth()]} ${realTimeYear}`;
+
     let activities = JSON.parse(localStorage.getItem('daily_activities_db')) || [];
     
-    // Default categories with emojis & colors
+    // Default categories
     let categories = JSON.parse(localStorage.getItem('daily_categories_db')) || [
-      { name: 'Outfit', emoji: '👕', style: 'bg-stone-100 text-stone-700 border-stone-300' },
-      { name: 'Belajar', emoji: '📚', style: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-      { name: 'Praktek', emoji: '🛠️', style: 'bg-sky-100 text-sky-800 border-sky-300' },
-      { name: 'Riset', emoji: '💡', style: 'bg-purple-100 text-purple-800 border-purple-300' },
-      { name: 'Kerja', emoji: '💼', style: 'bg-blue-100 text-blue-800 border-blue-300' },
-      { name: 'Olahraga', emoji: '🏋️', style: 'bg-orange-100 text-orange-800 border-orange-300' },
-      { name: 'Habit', emoji: '🧴', style: 'bg-pink-100 text-pink-800 border-pink-300' }
+      { name: 'Kerja', emoji: '💼', style: 'bg-zinc-100 text-zinc-800 border-zinc-200' },
+      { name: 'Belajar', emoji: '📚', style: 'bg-zinc-100 text-zinc-800 border-zinc-200' },
+      { name: 'Olahraga', emoji: '🏃', style: 'bg-zinc-100 text-zinc-800 border-zinc-200' },
+      { name: 'Habit', emoji: '✨', style: 'bg-zinc-100 text-zinc-800 border-zinc-200' },
+      { name: 'Praktek', emoji: '🛠️', style: 'bg-zinc-100 text-zinc-800 border-zinc-200' },
+      { name: 'Riset', emoji: '💡', style: 'bg-zinc-100 text-zinc-800 border-zinc-200' },
+      { name: 'Outfit', emoji: '👕', style: 'bg-zinc-100 text-zinc-800 border-zinc-200' }
     ];
 
-    // Default template rutinitas harian
+    // Default routines
     let routines = JSON.parse(localStorage.getItem('daily_routines_db')) || [
       { id: 'r1', aktivitas: 'Olahraga Pagi & Stretching', jamMulai: '06:00', jamSelesai: '06:45', kategori: 'Olahraga' },
       { id: 'r2', aktivitas: 'Belajar & Upgrade Skill', jamMulai: '08:00', jamSelesai: '09:30', kategori: 'Belajar' },
@@ -463,15 +524,15 @@
       localStorage.setItem('daily_routines_db', JSON.stringify(routines));
     }
 
-    function showToast(msg, icon = '✨') {
+    function showToast(msg, icon = '✓') {
       const toast = document.getElementById('toast');
       if (!toast) return;
       document.getElementById('toast-msg').innerText = msg;
       document.getElementById('toast-icon').innerText = icon;
-      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
       setTimeout(() => {
-        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
-      }, 3000);
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+      }, 2500);
     }
 
     function switchTab(activeTab) {
@@ -480,10 +541,10 @@
         const btnEl = document.getElementById(`nav-${tab}`);
         if (tab === activeTab) {
           viewEl.classList.remove('hidden');
-          btnEl.className = "flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-blue-600 shadow-sm";
+          btnEl.className = "flex-1 md:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-zinc-900 shadow-sm";
         } else {
           viewEl.classList.add('hidden');
-          btnEl.className = "flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900";
+          btnEl.className = "flex-1 md:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition text-zinc-500 hover:text-zinc-900";
         }
       });
 
@@ -511,26 +572,40 @@
     }
 
     function populateCategoryDropdowns() {
-      // Filter select di atas tabel
       const filterKat = document.getElementById('filter-kategori');
-      const currentFilterVal = filterKat.value;
+      const curFilterVal = filterKat.value;
       filterKat.innerHTML = '<option value="">Semua Kategori</option>';
       categories.forEach(c => {
         filterKat.innerHTML += `<option value="${c.name}">${c.emoji} ${c.name}</option>`;
       });
-      filterKat.value = currentFilterVal;
+      filterKat.value = curFilterVal;
 
-      // Modal select tambah aktivitas
       const modalKat = document.getElementById('modal-kategori');
-      const currentModalVal = modalKat.value;
+      const curModalVal = modalKat.value;
       modalKat.innerHTML = '';
       categories.forEach(c => {
         modalKat.innerHTML += `<option value="${c.name}">${c.emoji} ${c.name}</option>`;
       });
-      if (currentModalVal) modalKat.value = currentModalVal;
+      if (curModalVal) modalKat.value = curModalVal;
     }
 
-    // TAB 1: SPREADSHEET TABLE
+    // Toggle Selesai / Belum 1-Klik ala Things 3
+    function toggleStatus(id) {
+      const idx = activities.findIndex(a => a.id === id);
+      if (idx !== -1) {
+        const nextStat = activities[idx].status === 'Selesai' ? 'Belum' : 'Selesai';
+        activities[idx].status = nextStat;
+        saveData();
+        renderTodayTable();
+        if (selectedCalDate) renderCalendarDetailList(activities);
+        renderDashboardTab();
+        if (nextStat === 'Selesai') {
+          showToast('Tugas diselesaikan!', '✓');
+        }
+      }
+    }
+
+    // TAB 1: RENDER TABEL & CHECKLIST
     function renderTodayTable() {
       populateCategoryDropdowns();
       const tbody = document.getElementById('today-table-body');
@@ -541,15 +616,15 @@
       tbody.innerHTML = '';
 
       const filtered = activities.filter(item => {
-        const matchSearch = item.aktivitas.toLowerCase().includes(search) || 
-                            item.catatan.toLowerCase().includes(search) || 
-                            item.evaluasi.toLowerCase().includes(search);
+        const matchSearch = (item.aktivitas || '').toLowerCase().includes(search) || 
+                            (item.catatan || '').toLowerCase().includes(search) || 
+                            (item.evaluasi || '').toLowerCase().includes(search);
         const matchKat = filterKat === '' || item.kategori === filterKat;
         const matchStat = filterStat === '' || item.status === filterStat;
         return matchSearch && matchKat && matchStat;
       });
 
-      // Urutkan berdasarkan tanggal terbaru, lalu jam mulai paling awal
+      // Urutkan kronologis: Tanggal DESC, Jam Mulai ASC
       filtered.sort((a, b) => {
         if (a.tanggal !== b.tanggal) return b.tanggal.localeCompare(a.tanggal);
         const tA = a.jamMulai || '99:99';
@@ -558,64 +633,95 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-slate-400">Tidak ada aktivitas. Klik <b>"+ Tambah Baris"</b> atau <b>"🔁 Muat Rutinitas Hari Ini"</b> di atas.</td></tr>`;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-12 text-zinc-400">
+              <div class="text-2xl mb-1">📝</div>
+              <p class="text-xs sm:text-sm font-medium">Belum ada aktivitas.</p>
+              <p class="text-[11px] text-zinc-400 mt-1">Klik <b>"+ Tambah Aktivitas"</b> atau <b>"🔁 Muat Rutinitas"</b> di atas.</p>
+            </td>
+          </tr>
+        `;
         return;
       }
 
       filtered.forEach((item) => {
-        const catObj = categories.find(c => c.name === item.kategori) || { emoji: '📌', style: 'bg-slate-100 text-slate-700 border-slate-300' };
-        
-        // Buat pilihan dropdown kategori dinamis per baris
+        const catObj = categories.find(c => c.name === item.kategori) || { emoji: '📌', style: 'bg-zinc-100 text-zinc-700 border-zinc-200' };
+        const isDone = item.status === 'Selesai';
+        const isProgress = item.status === 'On Progress';
+
         let optionsHtml = '';
         categories.forEach(c => {
           optionsHtml += `<option value="${c.name}" ${item.kategori === c.name ? 'selected' : ''}>${c.emoji} ${c.name}</option>`;
         });
 
-        const isDone = item.status === 'Selesai';
+        // Things 3 Circular Checkbox
+        let checkIconHtml = '';
+        if (isDone) {
+          checkIconHtml = `
+            <button onclick="toggleStatus('${item.id}')" title="Tandai Belum" class="task-check-circle w-5 h-5 rounded-full bg-zinc-900 text-white flex items-center justify-center text-[10px] shadow-sm">
+              <svg class="w-3 h-3 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </button>
+          `;
+        } else if (isProgress) {
+          checkIconHtml = `
+            <button onclick="toggleStatus('${item.id}')" title="Klik untuk Selesai" class="task-check-circle w-5 h-5 rounded-full border-2 border-amber-500 bg-amber-50 flex items-center justify-center text-[10px] text-amber-600 font-bold">
+              •
+            </button>
+          `;
+        } else {
+          checkIconHtml = `
+            <button onclick="toggleStatus('${item.id}')" title="Klik untuk Selesai" class="task-check-circle w-5 h-5 rounded-full border-2 border-zinc-300 hover:border-zinc-700 bg-white flex items-center justify-center transition">
+            </button>
+          `;
+        }
+
         const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-50 transition-colors ${isDone ? 'bg-emerald-50/20' : ''}`;
+        tr.className = `group hover:bg-zinc-50/70 transition-colors ${isDone ? 'bg-zinc-50/40' : ''}`;
         tr.innerHTML = `
-          <td class="p-2 text-center">
-            <input type="date" value="${item.tanggal}" onchange="updateCell('${item.id}', 'tanggal', this.value)" class="w-full bg-transparent text-center focus:outline-none font-medium text-slate-700">
-          </td>
-          <td class="p-2 text-center text-slate-500 font-semibold bg-slate-50/70 text-xs">${item.hari}</td>
-          <td class="p-2 text-center">
-            <div class="flex items-center justify-center gap-1">
-              <input type="time" value="${item.jamMulai || ''}" onchange="updateCell('${item.id}', 'jamMulai', this.value)" class="w-[70px] p-1 text-xs border border-slate-200 rounded text-center bg-transparent focus:bg-white focus:border-blue-500 font-medium text-slate-700" title="Jam Mulai">
-              <span class="text-slate-400 text-xs">-</span>
-              <input type="time" value="${item.jamSelesai || ''}" onchange="updateCell('${item.id}', 'jamSelesai', this.value)" class="w-[70px] p-1 text-xs border border-slate-200 rounded text-center bg-transparent focus:bg-white focus:border-blue-500 font-medium text-slate-700" title="Jam Selesai">
+          <td class="py-2.5 px-3 text-center">
+            <div class="flex items-center justify-center">
+              ${checkIconHtml}
             </div>
           </td>
-          <td class="p-2">
-            <div contenteditable="true" onblur="updateCell('${item.id}', 'aktivitas', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-800 font-medium ${isDone ? 'line-through text-slate-400' : ''}">${item.aktivitas}</div>
+          <td class="py-2.5 px-3">
+            <div class="flex items-center gap-1.5">
+              <input type="date" value="${item.tanggal}" onchange="updateCell('${item.id}', 'tanggal', this.value)" class="bg-transparent focus:bg-white text-xs font-mono text-zinc-600 focus:outline-none rounded px-1">
+              <span class="text-[10px] text-zinc-400 font-medium">(${item.hari})</span>
+            </div>
           </td>
-          <td class="p-2 text-center">
-            <select onchange="updateCell('${item.id}', 'kategori', this.value)" class="w-full px-2 py-1 rounded-full text-xs font-semibold cursor-pointer border ${catObj.style}">
+          <td class="py-2.5 px-3 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <input type="time" value="${item.jamMulai || ''}" onchange="updateCell('${item.id}', 'jamMulai', this.value)" class="w-16 p-1 text-[11px] font-mono border border-zinc-200/80 rounded-md text-center bg-zinc-50/50 focus:bg-white focus:border-zinc-900 text-zinc-700" title="Jam Mulai">
+              <span class="text-zinc-300 text-xs">-</span>
+              <input type="time" value="${item.jamSelesai || ''}" onchange="updateCell('${item.id}', 'jamSelesai', this.value)" class="w-16 p-1 text-[11px] font-mono border border-zinc-200/80 rounded-md text-center bg-zinc-50/50 focus:bg-white focus:border-zinc-900 text-zinc-700" title="Jam Selesai">
+            </div>
+          </td>
+          <td class="py-2.5 px-3">
+            <div contenteditable="true" onblur="updateCell('${item.id}', 'aktivitas', this.innerText)" class="clean-cell p-1.5 rounded-lg font-medium text-xs sm:text-sm ${isDone ? 'line-through text-zinc-400' : 'text-zinc-900'}">${item.aktivitas}</div>
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            <select onchange="updateCell('${item.id}', 'kategori', this.value)" class="px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer border border-zinc-200/80 bg-zinc-50 text-zinc-700 hover:bg-white focus:outline-none">
               ${optionsHtml}
             </select>
           </td>
-          <td class="p-2 text-center">
-            <select onchange="updateCell('${item.id}', 'status', this.value)" class="w-full px-2 py-1 rounded-full text-xs font-semibold cursor-pointer border ${getStatusStyle(item.status)}">
-              <option value="Belum" ${item.status === 'Belum' ? 'selected' : ''}>🔴 Belum</option>
-              <option value="On Progress" ${item.status === 'On Progress' ? 'selected' : ''}>🟡 On Progress</option>
-              <option value="Selesai" ${item.status === 'Selesai' ? 'selected' : ''}>🟢 Selesai</option>
-            </select>
+          <td class="py-2.5 px-3">
+            <div contenteditable="true" onblur="updateCell('${item.id}', 'catatan', this.innerText)" class="clean-cell p-1.5 rounded-lg text-xs text-zinc-500 placeholder-zinc-300">${item.catatan || '-'}</div>
           </td>
-          <td class="p-2">
-            <div contenteditable="true" onblur="updateCell('${item.id}', 'catatan', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-600">${item.catatan}</div>
+          <td class="py-2.5 px-3">
+            <div contenteditable="true" onblur="updateCell('${item.id}', 'evaluasi', this.innerText)" class="clean-cell p-1.5 rounded-lg text-xs text-zinc-500">${item.evaluasi || '-'}</div>
           </td>
-          <td class="p-2">
-            <div contenteditable="true" onblur="updateCell('${item.id}', 'evaluasi', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-600">${item.evaluasi}</div>
-          </td>
-          <td class="p-2 text-center">
-            <button onclick="deleteRow('${item.id}')" title="Hapus Baris" class="text-slate-400 hover:text-red-600 p-1 rounded transition">🗑️</button>
+          <td class="py-2.5 px-3 text-center">
+            <button onclick="deleteRow('${item.id}')" title="Hapus Baris" class="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-600 p-1 rounded transition text-xs">
+              ✕
+            </button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // TAB 2: CALENDAR
+    // TAB 2: KALENDER
     function renderCalendarTab() {
       const m = parseInt(document.getElementById('cal-month').value);
       const y = parseInt(document.getElementById('cal-year').value);
@@ -637,40 +743,31 @@
         const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayTasks = monthTasks.filter(a => a.tanggal === dateStr);
         const isToday = dateStr === realTimeDateStr;
-
-        let bgClass = "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/60";
-        if (dayTasks.length > 0) {
-          if (dayTasks.some(t => t.status === 'Belum')) bgClass = "bg-red-50 text-red-900 border border-red-300";
-          else if (dayTasks.some(t => t.status === 'On Progress')) bgClass = "bg-amber-50 text-amber-900 border border-amber-300";
-          else bgClass = "bg-emerald-50 text-emerald-900 border border-emerald-300";
-        }
-
         const isSelected = selectedCalDate === dateStr;
-        const activeRing = isSelected ? 'ring-2 ring-blue-600 shadow-md' : '';
-        const todayBadge = isToday ? 'ring-2 ring-blue-400 bg-blue-50/50' : '';
+
+        let dotColor = 'bg-transparent';
+        if (dayTasks.length > 0) {
+          if (dayTasks.some(t => t.status === 'Belum')) dotColor = 'bg-zinc-300';
+          else if (dayTasks.some(t => t.status === 'On Progress')) dotColor = 'bg-amber-400';
+          else dotColor = 'bg-zinc-900';
+        }
 
         const cell = document.createElement('button');
-        cell.className = `p-1.5 rounded-xl text-xs flex flex-col items-start justify-between min-h-[58px] transition text-left ${bgClass} ${activeRing} ${todayBadge}`;
+        cell.className = `p-2 rounded-xl text-xs flex flex-col items-center justify-between min-h-[54px] transition border ${
+          isSelected 
+            ? 'border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900 font-bold' 
+            : 'border-zinc-200/70 hover:bg-zinc-50 bg-white'
+        }`;
         cell.onclick = () => { selectedCalDate = dateStr; renderCalendarTab(); };
-
-        let activityPreview = '';
-        if (dayTasks.length > 0) {
-          const firstTask = dayTasks[0];
-          const catObj = categories.find(c => c.name === firstTask.kategori) || { emoji: '📌' };
-          activityPreview = `
-            <div class="mt-0.5 w-full truncate text-[10px] font-medium opacity-90">
-              ${catObj.emoji} ${firstTask.aktivitas}
-            </div>
-            ${dayTasks.length > 1 ? `<span class="text-[8px] opacity-60 font-semibold">+${dayTasks.length - 1} lagi</span>` : ''}
-          `;
-        }
 
         cell.innerHTML = `
           <div class="flex items-center justify-between w-full">
-            <span class="font-bold text-xs ${isToday ? 'text-blue-600' : ''}">${day}</span>
-            ${isToday ? `<span class="text-[8px] bg-blue-600 text-white px-1 py-0.2 rounded font-semibold">Ini</span>` : ''}
+            <span class="${isToday ? 'w-5 h-5 rounded-full bg-zinc-900 text-white flex items-center justify-center font-bold text-[10px]' : 'text-zinc-700'}">${day}</span>
+            <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
           </div>
-          ${activityPreview}
+          <div class="w-full text-center mt-1">
+            ${dayTasks.length > 0 ? `<span class="text-[10px] text-zinc-400 font-medium">${dayTasks.length} tugas</span>` : ''}
+          </div>
         `;
         grid.appendChild(cell);
       }
@@ -685,15 +782,14 @@
       
       let filteredTasks = monthTasks;
       if (selectedCalDate) {
-        document.getElementById('cal-selected-date-title').innerText = `📌 Tanggal ${selectedCalDate} (${getNamaHari(selectedCalDate)})`;
+        document.getElementById('cal-selected-date-title').innerText = `${selectedCalDate} (${getNamaHari(selectedCalDate)})`;
         filteredTasks = monthTasks.filter(a => a.tanggal === selectedCalDate);
         btnAddOnDate.classList.remove('hidden');
       } else {
-        document.getElementById('cal-selected-date-title').innerText = `📌 Aktivitas Bulan Ini`;
+        document.getElementById('cal-selected-date-title').innerText = `Aktivitas Bulan Ini`;
         btnAddOnDate.classList.add('hidden');
       }
 
-      // Urutkan berdasarkan jam mulai
       filteredTasks.sort((a, b) => {
         const tA = a.jamMulai || '99:99';
         const tB = b.jamMulai || '99:99';
@@ -702,33 +798,33 @@
 
       if (filteredTasks.length === 0) {
         list.innerHTML = `
-          <div class="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs">
-            Tidak ada aktivitas tercatat di tanggal ini.
+          <div class="p-8 text-center text-zinc-400 bg-zinc-50/70 rounded-xl border border-dashed border-zinc-200 text-xs">
+            Tidak ada aktivitas tercatat.
           </div>
         `;
         return;
       }
 
       filteredTasks.forEach(item => {
-        const catObj = categories.find(c => c.name === item.kategori) || { emoji: '📌', style: 'bg-slate-100 text-slate-700 border-slate-300' };
+        const catObj = categories.find(c => c.name === item.kategori) || { emoji: '📌', style: 'bg-zinc-100 text-zinc-700' };
+        const isDone = item.status === 'Selesai';
         const card = document.createElement('div');
-        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5";
+        card.className = `p-3 rounded-xl border transition ${isDone ? 'bg-zinc-50/60 border-zinc-200/60' : 'bg-white border-zinc-200/80 shadow-sm'}`;
         card.innerHTML = `
-          <div class="flex flex-wrap items-center justify-between gap-1 border-b border-slate-200/60 pb-1.5">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${catObj.style}">${catObj.emoji} ${item.kategori}</span>
-              ${item.jamMulai ? `<span class="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-200">⏰ ${item.jamMulai}${item.jamSelesai ? ' - ' + item.jamSelesai : ''}</span>` : ''}
-            </div>
+          <div class="flex items-center justify-between gap-2 border-b border-zinc-100 pb-2">
             <div class="flex items-center gap-1.5">
-              <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${getStatusStyle(item.status)}">${item.status}</span>
-              <button onclick="deleteRow('${item.id}')" title="Hapus" class="text-slate-400 hover:text-red-600 text-xs">🗑️</button>
+              <span class="text-[11px] font-medium text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-full">${catObj.emoji} ${item.kategori}</span>
+              ${item.jamMulai ? `<span class="text-[11px] font-mono text-zinc-500 font-medium">⏰ ${item.jamMulai}${item.jamSelesai ? ' - ' + item.jamSelesai : ''}</span>` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="toggleStatus('${item.id}')" class="text-xs font-semibold px-2 py-0.5 rounded-full border ${isDone ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-zinc-100 text-zinc-600 border-zinc-200'}">
+                ${item.status}
+              </button>
+              <button onclick="deleteRow('${item.id}')" title="Hapus" class="text-zinc-400 hover:text-red-500 text-xs">✕</button>
             </div>
           </div>
-          <h4 class="font-bold text-slate-800 text-sm ${item.status === 'Selesai' ? 'line-through text-slate-400' : ''}">${item.aktivitas}</h4>
-          <div class="text-xs text-slate-600 space-y-0.5 pt-0.5">
-            <p><b>📝 Catatan:</b> ${item.catatan || '-'}</p>
-            <p><b>💡 Evaluasi:</b> ${item.evaluasi || '-'}</p>
-          </div>
+          <h4 class="font-medium text-xs sm:text-sm pt-2 ${isDone ? 'line-through text-zinc-400' : 'text-zinc-900'}">${item.aktivitas}</h4>
+          ${item.catatan && item.catatan !== '-' ? `<p class="text-xs text-zinc-400 mt-1">📝 ${item.catatan}</p>` : ''}
         `;
         list.appendChild(card);
       });
@@ -768,17 +864,16 @@
       const insightContainer = document.getElementById('dash-insight-text');
       if (total === 0) {
         insightContainer.innerHTML = `
-          <div class="py-4 text-center text-slate-400 border border-dashed border-slate-200 rounded-xl px-2">
-            <p class="text-xs">✨ Belum ada data aktivitas untuk bulan ini.</p>
-            <p class="text-[11px] mt-1 text-slate-400">Yuk, mulai catat aktivitas pertamamu di tab <b>Aktivitas Hari Ini</b>!</p>
+          <div class="py-4 text-center text-zinc-400 border border-dashed border-zinc-200 rounded-xl px-2">
+            <p class="text-xs">Belum ada data aktivitas untuk bulan ini.</p>
           </div>
         `;
       } else {
-        const topCategory = getTopCategory(monthActivities);
+        const topCat = getTopCategory(monthActivities);
         insightContainer.innerHTML = `
-          <p>• Total <b>${total} aktivitas</b> tercatat bulan ini.</p>
-          <p>• Kategori paling dominan: <b>${topCategory}</b>.</p>
-          <p>• Tingkat keberhasilan saat ini mencapai <b>${overallRate}%</b>.</p>
+          <p>• Total <b>${total} aktivitas</b> tercatat pada bulan ini.</p>
+          <p>• Kategori paling sering: <b>${topCat}</b>.</p>
+          <p>• Tingkat penyelesaian: <b>${overallRate}%</b>.</p>
         `;
       }
     }
@@ -811,7 +906,8 @@
         categoryChartInstance.destroy();
       }
 
-      const defaultColors = ['#2563eb', '#10b981', '#0284c7', '#a855f7', '#f97316', '#ec4899', '#64748b', '#eab308'];
+      // Notion-Style Muted Palette
+      const minimalColors = ['#18181b', '#52525b', '#71717a', '#a1a1aa', '#10b981', '#3b82f6', '#f59e0b', '#ec4899'];
 
       categoryChartInstance = new Chart(ctx, {
         type: 'doughnut',
@@ -819,7 +915,7 @@
           labels: catNames,
           datasets: [{
             data: totalCount === 0 ? [1] : dataCounts,
-            backgroundColor: totalCount === 0 ? ['#f1f5f9'] : catNames.map((_, i) => defaultColors[i % defaultColors.length]),
+            backgroundColor: totalCount === 0 ? ['#f4f4f5'] : catNames.map((_, i) => minimalColors[i % minimalColors.length]),
             borderWidth: 2,
             borderColor: '#ffffff'
           }]
@@ -830,75 +926,12 @@
           plugins: {
             legend: { display: false }
           },
-          cutout: '70%'
+          cutout: '74%'
         }
       });
     }
 
-    // Modal Kelola Kategori Handlers
-    function openCategoryModal() {
-      renderCategoryListUI();
-      document.getElementById('new-cat-emoji').value = '';
-      document.getElementById('new-cat-name').value = '';
-      document.getElementById('modal-category').classList.remove('hidden');
-    }
-
-    function closeCategoryModal() {
-      document.getElementById('modal-category').classList.add('hidden');
-      populateCategoryDropdowns();
-      renderTodayTable();
-    }
-
-    function renderCategoryListUI() {
-      const container = document.getElementById('category-list-container');
-      container.innerHTML = '';
-
-      categories.forEach((cat, index) => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs";
-        row.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-1 rounded-lg border ${cat.style} font-semibold">${cat.emoji} ${cat.name}</span>
-          </div>
-          <div>
-            ${categories.length > 1 ? `<button onclick="deleteCategory(${index})" class="text-slate-400 hover:text-red-600 font-bold px-2 py-1">🗑️ Hapus</button>` : '<span class="text-[10px] text-slate-400">Minimal 1</span>'}
-          </div>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function addNewCategory() {
-      const emoji = document.getElementById('new-cat-emoji').value.trim() || '📌';
-      const name = document.getElementById('new-cat-name').value.trim();
-      const style = document.getElementById('new-cat-color').value;
-
-      if (!name) {
-        alert('Nama kategori tidak boleh kosong!');
-        return;
-      }
-
-      if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-        alert('Kategori dengan nama tersebut sudah ada!');
-        return;
-      }
-
-      categories.push({ name, emoji, style });
-      saveData();
-      renderCategoryListUI();
-      document.getElementById('new-cat-emoji').value = '';
-      document.getElementById('new-cat-name').value = '';
-    }
-
-    function deleteCategory(index) {
-      if (confirm(`Hapus kategori "${categories[index].name}"?`)) {
-        categories.splice(index, 1);
-        saveData();
-        renderCategoryListUI();
-      }
-    }
-
-    // Routine Template Handlers
+    // ROUTINES HANDLERS
     function openRoutineModal() {
       populateRoutineCategoryDropdown();
       renderRoutineListUI();
@@ -928,28 +961,28 @@
 
       if (routines.length === 0) {
         container.innerHTML = `
-          <div class="text-center p-6 text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-            Belum ada template rutinitas. Tambahkan di formulir atas!
+          <div class="text-center p-4 text-xs text-zinc-400 bg-zinc-50 rounded-xl border border-dashed border-zinc-200">
+            Belum ada template rutinitas.
           </div>
         `;
         return;
       }
 
       routines.forEach((r, idx) => {
-        const catObj = categories.find(c => c.name === r.kategori) || { emoji: '📌', style: 'bg-slate-100 text-slate-700 border-slate-300' };
-        const timeStr = r.jamMulai ? `⏰ ${r.jamMulai}${r.jamSelesai ? ' - ' + r.jamSelesai : ''}` : '⏰ Jam Bebas';
+        const catObj = categories.find(c => c.name === r.kategori) || { emoji: '📌' };
+        const timeStr = r.jamMulai ? `⏰ ${r.jamMulai}${r.jamSelesai ? ' - ' + r.jamSelesai : ''}` : '⏰ Bebas';
 
         const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:bg-slate-100/70 transition";
+        row.className = "flex items-center justify-between p-2.5 bg-zinc-50 border border-zinc-200/80 rounded-xl text-xs";
         row.innerHTML = `
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-slate-800 text-sm">${r.aktivitas}</span>
-              <span class="px-2 py-0.5 rounded-full border ${catObj.style} text-[10px] font-semibold">${catObj.emoji} ${r.kategori}</span>
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-1.5 font-medium text-zinc-900">
+              <span>${r.aktivitas}</span>
+              <span class="text-[10px] text-zinc-500 bg-white border border-zinc-200/60 px-1.5 py-0.2 rounded-full">${catObj.emoji} ${r.kategori}</span>
             </div>
-            <div class="text-slate-500 font-medium text-[11px]">${timeStr}</div>
+            <div class="text-zinc-400 font-mono text-[10px]">${timeStr}</div>
           </div>
-          <button onclick="deleteRoutine(${idx})" class="text-slate-400 hover:text-red-600 font-bold p-1 rounded transition" title="Hapus dari template">🗑️</button>
+          <button onclick="deleteRoutine(${idx})" class="text-zinc-400 hover:text-red-600 font-medium p-1 rounded transition text-xs" title="Hapus">✕</button>
         `;
         container.appendChild(row);
       });
@@ -962,7 +995,7 @@
       const cat = document.getElementById('new-routine-cat').value;
 
       if (!name) {
-        alert('Nama aktivitas rutin tidak boleh kosong!');
+        alert('Nama rutinitas tidak boleh kosong!');
         return;
       }
 
@@ -979,7 +1012,7 @@
       document.getElementById('new-routine-name').value = '';
       document.getElementById('new-routine-start').value = '';
       document.getElementById('new-routine-end').value = '';
-      showToast(`Rutinitas "${name}" disimpan ke template!`, '✅');
+      showToast('Rutinitas disimpan ke template!', '✓');
     }
 
     function deleteRoutine(index) {
@@ -987,14 +1020,14 @@
         routines.splice(index, 1);
         saveData();
         renderRoutineListUI();
-        showToast('Rutinitas dihapus dari template.', '🗑️');
+        showToast('Rutinitas dihapus.', '✓');
       }
     }
 
     function applyRoutineToday(targetDate) {
       const dateToApply = targetDate || realTimeDateStr;
       if (routines.length === 0) {
-        alert('Template rutinitas masih kosong. Silakan atur di "Template Rutinitas" terlebih dahulu.');
+        alert('Template rutinitas masih kosong.');
         return;
       }
 
@@ -1024,13 +1057,75 @@
       renderDashboardTab();
 
       if (addedCount > 0) {
-        showToast(`${addedCount} aktivitas rutin berhasil dimuat ke hari ini!`, '🎉');
+        showToast(`${addedCount} rutinitas dimuat ke hari ini!`, '✓');
       } else {
         showToast(`Semua rutinitas sudah ada di tanggal ${dateToApply}.`, 'ℹ️');
       }
     }
 
-    // Modal Input Aktivitas Handlers
+    // CATEGORY HANDLERS
+    function openCategoryModal() {
+      renderCategoryListUI();
+      document.getElementById('new-cat-emoji').value = '';
+      document.getElementById('new-cat-name').value = '';
+      document.getElementById('modal-category').classList.remove('hidden');
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('modal-category').classList.add('hidden');
+      populateCategoryDropdowns();
+      renderTodayTable();
+    }
+
+    function renderCategoryListUI() {
+      const container = document.getElementById('category-list-container');
+      container.innerHTML = '';
+
+      categories.forEach((cat, index) => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-2 bg-zinc-50 border border-zinc-200/70 rounded-xl text-xs";
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-md bg-white border border-zinc-200 text-zinc-700 font-medium">${cat.emoji} ${cat.name}</span>
+          </div>
+          <div>
+            ${categories.length > 1 ? `<button onclick="deleteCategory(${index})" class="text-zinc-400 hover:text-red-600 font-bold px-2 py-1 text-xs">✕</button>` : '<span class="text-[10px] text-zinc-400">Min 1</span>'}
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addNewCategory() {
+      const emoji = document.getElementById('new-cat-emoji').value.trim() || '📌';
+      const name = document.getElementById('new-cat-name').value.trim();
+
+      if (!name) {
+        alert('Nama kategori tidak boleh kosong!');
+        return;
+      }
+
+      if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert('Kategori sudah ada!');
+        return;
+      }
+
+      categories.push({ name, emoji, style: 'bg-zinc-100 text-zinc-800 border-zinc-200' });
+      saveData();
+      renderCategoryListUI();
+      document.getElementById('new-cat-emoji').value = '';
+      document.getElementById('new-cat-name').value = '';
+    }
+
+    function deleteCategory(index) {
+      if (confirm(`Hapus kategori "${categories[index].name}"?`)) {
+        categories.splice(index, 1);
+        saveData();
+        renderCategoryListUI();
+      }
+    }
+
+    // MODAL INPUT AKTIVITAS
     function openAddModalForSelectedDate() {
       populateCategoryDropdowns();
       document.getElementById('modal-tanggal').value = selectedCalDate || realTimeDateStr;
@@ -1074,16 +1169,7 @@
       renderTodayTable();
       renderCalendarTab();
       renderDashboardTab();
-      showToast('Aktivitas baru berhasil disimpan!', '✅');
-    }
-
-    function getStatusStyle(stat) {
-      switch (stat) {
-        case 'Belum': return 'bg-red-100 text-red-800 border-red-300';
-        case 'On Progress': return 'bg-amber-100 text-amber-800 border-amber-300';
-        case 'Selesai': return 'bg-green-100 text-green-800 border-green-300';
-        default: return 'bg-slate-100 text-slate-700 border-slate-300';
-      }
+      showToast('Aktivitas berhasil ditambahkan!', '✓');
     }
 
     function updateCell(id, key, value) {
@@ -1114,18 +1200,19 @@
     }
 
     function deleteRow(id) {
-      if (confirm('Hapus baris ini?')) {
+      if (confirm('Hapus aktivitas ini?')) {
         activities = activities.filter(a => a.id !== id);
         saveData();
         renderTodayTable();
         renderCalendarTab();
         renderDashboardTab();
-        showToast('Baris aktivitas dihapus.', '🗑️');
+        showToast('Aktivitas dihapus.', '✓');
       }
     }
 
     window.onload = function() {
       initRealTimeDropdowns();
+      renderTodayTable();
       renderDashboardTab();
     };
   </script>
