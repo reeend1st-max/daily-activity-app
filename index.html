@@ -66,10 +66,16 @@
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex flex-wrap gap-2">
           <button onclick="addBlankRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
-            <span>➕</span> Tambah Baris Kosong
+            <span>➕</span> Tambah Baris
           </button>
-          <button onclick="openCategoryModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-300">
-            <span>⚙️</span> Kelola Kategori & Emote
+          <button onclick="applyRoutineToday()" title="Muat seluruh aktivitas rutin ke hari ini" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+            <span>🔁</span> Muat Rutinitas Hari Ini
+          </button>
+          <button onclick="openRoutineModal()" title="Atur template rutinitas harian" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-300">
+            <span>📋</span> Template Rutinitas
+          </button>
+          <button onclick="openCategoryModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-300">
+            <span>⚙️</span> Kategori
           </button>
         </div>
         <div class="flex flex-wrap gap-2 w-full md:w-auto">
@@ -91,13 +97,14 @@
         <table class="w-full text-left border-collapse sheet-table text-sm">
           <thead>
             <tr>
-              <th class="p-3 w-36 text-center">Tanggal</th>
-              <th class="p-3 w-28 text-center">Hari</th>
+              <th class="p-3 w-32 text-center">Tanggal</th>
+              <th class="p-3 w-24 text-center">Hari</th>
+              <th class="p-3 w-36 text-center">⏰ Jam / Waktu</th>
               <th class="p-3 min-w-[200px]">Aktivitas</th>
-              <th class="p-3 w-44 text-center">Kategori</th>
-              <th class="p-3 w-40 text-center">Status</th>
-              <th class="p-3 min-w-[180px]">Catatan</th>
-              <th class="p-3 min-w-[180px]">Evaluasi</th>
+              <th class="p-3 w-40 text-center">Kategori</th>
+              <th class="p-3 w-36 text-center">Status</th>
+              <th class="p-3 min-w-[170px]">Catatan</th>
+              <th class="p-3 min-w-[170px]">Evaluasi</th>
               <th class="p-3 w-16 text-center">Aksi</th>
             </tr>
           </thead>
@@ -251,6 +258,16 @@
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">⏰ Jam Mulai</label>
+            <input type="time" id="modal-jam-mulai" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">⏰ Jam Selesai</label>
+            <input type="time" id="modal-jam-selesai" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
             <select id="modal-kategori" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
               <!-- Render via JS -->
@@ -333,6 +350,73 @@
     </div>
   </div>
 
+  <!-- MODAL KELOLA TEMPLATE RUTINITAS -->
+  <div id="modal-routine" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-5">
+      <div class="flex items-center justify-between border-b pb-3">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span>🔁</span> Template Rutinitas Harian
+          </h3>
+          <p class="text-xs text-slate-500">Daftar aktivitas yang dapat dimuat otomatis ke hari mana saja.</p>
+        </div>
+        <button onclick="closeRoutineModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+
+      <!-- Form Tambah Rutinitas Baru -->
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Tambah Rutinitas ke Template</h4>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Aktivitas Rutin</label>
+          <input type="text" id="new-routine-name" placeholder="Contoh: Olahraga Pagi 30 Menit" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jam Mulai</label>
+            <input type="time" id="new-routine-start" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jam Selesai</label>
+            <input type="time" id="new-routine-end" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Kategori</label>
+            <select id="new-routine-cat" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <!-- Render via JS -->
+            </select>
+          </div>
+        </div>
+        <button onclick="addNewRoutine()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-sm">
+          <span>➕</span> Simpan ke Template Rutinitas
+        </button>
+      </div>
+
+      <!-- Daftar Template Rutinitas -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Daftar Rutinitas Tersimpan</h4>
+          <span id="routine-count-badge" class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200"></span>
+        </div>
+        <div id="routine-list-container" class="max-h-52 overflow-y-auto space-y-2 pr-1">
+          <!-- Render via JS -->
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t">
+        <button onclick="applyRoutineToday(); closeRoutineModal();" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium shadow-sm flex items-center gap-1.5">
+          <span>🔁</span> Muat ke Hari Ini
+        </button>
+        <button onclick="closeRoutineModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm transition-all duration-300 opacity-0 pointer-events-none translate-y-3 border border-slate-700">
+    <span id="toast-icon" class="text-lg">✨</span>
+    <span id="toast-msg" class="font-medium">Notifikasi</span>
+  </div>
+
   <script>
     const listHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
@@ -360,12 +444,34 @@
       { name: 'Habit', emoji: '🧴', style: 'bg-pink-100 text-pink-800 border-pink-300' }
     ];
 
+    // Default template rutinitas harian
+    let routines = JSON.parse(localStorage.getItem('daily_routines_db')) || [
+      { id: 'r1', aktivitas: 'Olahraga Pagi & Stretching', jamMulai: '06:00', jamSelesai: '06:45', kategori: 'Olahraga' },
+      { id: 'r2', aktivitas: 'Belajar & Upgrade Skill', jamMulai: '08:00', jamSelesai: '09:30', kategori: 'Belajar' },
+      { id: 'r3', aktivitas: 'Fokus Kerja / Project Utama', jamMulai: '10:00', jamSelesai: '12:00', kategori: 'Kerja' },
+      { id: 'r4', aktivitas: 'Praktek / Coding / Tugas', jamMulai: '13:30', jamSelesai: '15:30', kategori: 'Praktek' },
+      { id: 'r5', aktivitas: 'Riset & Catat Ide Baru', jamMulai: '16:00', jamSelesai: '17:00', kategori: 'Riset' },
+      { id: 'r6', aktivitas: 'Evaluasi Harian & Habit Malam', jamMulai: '21:00', jamSelesai: '21:30', kategori: 'Habit' }
+    ];
+
     let selectedCalDate = null;
     let categoryChartInstance = null;
 
     function saveData() {
       localStorage.setItem('daily_activities_db', JSON.stringify(activities));
       localStorage.setItem('daily_categories_db', JSON.stringify(categories));
+      localStorage.setItem('daily_routines_db', JSON.stringify(routines));
+    }
+
+    function showToast(msg, icon = '✨') {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      document.getElementById('toast-msg').innerText = msg;
+      document.getElementById('toast-icon').innerText = icon;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+      }, 3000);
     }
 
     function switchTab(activeTab) {
@@ -443,8 +549,16 @@
         return matchSearch && matchKat && matchStat;
       });
 
+      // Urutkan berdasarkan tanggal terbaru, lalu jam mulai paling awal
+      filtered.sort((a, b) => {
+        if (a.tanggal !== b.tanggal) return b.tanggal.localeCompare(a.tanggal);
+        const tA = a.jamMulai || '99:99';
+        const tB = b.jamMulai || '99:99';
+        return tA.localeCompare(tB);
+      });
+
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-slate-400">Tidak ada aktivitas. Klik <b>"+ Tambah Baris Kosong"</b> di atas.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-slate-400">Tidak ada aktivitas. Klik <b>"+ Tambah Baris"</b> atau <b>"🔁 Muat Rutinitas Hari Ini"</b> di atas.</td></tr>`;
         return;
       }
 
@@ -457,15 +571,23 @@
           optionsHtml += `<option value="${c.name}" ${item.kategori === c.name ? 'selected' : ''}>${c.emoji} ${c.name}</option>`;
         });
 
+        const isDone = item.status === 'Selesai';
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition-colors";
+        tr.className = `hover:bg-slate-50 transition-colors ${isDone ? 'bg-emerald-50/20' : ''}`;
         tr.innerHTML = `
           <td class="p-2 text-center">
             <input type="date" value="${item.tanggal}" onchange="updateCell('${item.id}', 'tanggal', this.value)" class="w-full bg-transparent text-center focus:outline-none font-medium text-slate-700">
           </td>
-          <td class="p-2 text-center text-slate-500 font-semibold bg-slate-50">${item.hari}</td>
+          <td class="p-2 text-center text-slate-500 font-semibold bg-slate-50/70 text-xs">${item.hari}</td>
+          <td class="p-2 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <input type="time" value="${item.jamMulai || ''}" onchange="updateCell('${item.id}', 'jamMulai', this.value)" class="w-[70px] p-1 text-xs border border-slate-200 rounded text-center bg-transparent focus:bg-white focus:border-blue-500 font-medium text-slate-700" title="Jam Mulai">
+              <span class="text-slate-400 text-xs">-</span>
+              <input type="time" value="${item.jamSelesai || ''}" onchange="updateCell('${item.id}', 'jamSelesai', this.value)" class="w-[70px] p-1 text-xs border border-slate-200 rounded text-center bg-transparent focus:bg-white focus:border-blue-500 font-medium text-slate-700" title="Jam Selesai">
+            </div>
+          </td>
           <td class="p-2">
-            <div contenteditable="true" onblur="updateCell('${item.id}', 'aktivitas', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-800 font-medium">${item.aktivitas}</div>
+            <div contenteditable="true" onblur="updateCell('${item.id}', 'aktivitas', this.innerText)" class="editable-cell p-1.5 rounded min-h-[32px] text-slate-800 font-medium ${isDone ? 'line-through text-slate-400' : ''}">${item.aktivitas}</div>
           </td>
           <td class="p-2 text-center">
             <select onchange="updateCell('${item.id}', 'kategori', this.value)" class="w-full px-2 py-1 rounded-full text-xs font-semibold cursor-pointer border ${catObj.style}">
@@ -571,6 +693,13 @@
         btnAddOnDate.classList.add('hidden');
       }
 
+      // Urutkan berdasarkan jam mulai
+      filteredTasks.sort((a, b) => {
+        const tA = a.jamMulai || '99:99';
+        const tB = b.jamMulai || '99:99';
+        return tA.localeCompare(tB);
+      });
+
       if (filteredTasks.length === 0) {
         list.innerHTML = `
           <div class="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs">
@@ -586,13 +715,16 @@
         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5";
         card.innerHTML = `
           <div class="flex flex-wrap items-center justify-between gap-1 border-b border-slate-200/60 pb-1.5">
-            <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${catObj.style}">${catObj.emoji} ${item.kategori}</span>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${catObj.style}">${catObj.emoji} ${item.kategori}</span>
+              ${item.jamMulai ? `<span class="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-200">⏰ ${item.jamMulai}${item.jamSelesai ? ' - ' + item.jamSelesai : ''}</span>` : ''}
+            </div>
             <div class="flex items-center gap-1.5">
               <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${getStatusStyle(item.status)}">${item.status}</span>
               <button onclick="deleteRow('${item.id}')" title="Hapus" class="text-slate-400 hover:text-red-600 text-xs">🗑️</button>
             </div>
           </div>
-          <h4 class="font-bold text-slate-800 text-sm">${item.aktivitas}</h4>
+          <h4 class="font-bold text-slate-800 text-sm ${item.status === 'Selesai' ? 'line-through text-slate-400' : ''}">${item.aktivitas}</h4>
           <div class="text-xs text-slate-600 space-y-0.5 pt-0.5">
             <p><b>📝 Catatan:</b> ${item.catatan || '-'}</p>
             <p><b>💡 Evaluasi:</b> ${item.evaluasi || '-'}</p>
@@ -766,11 +898,145 @@
       }
     }
 
+    // Routine Template Handlers
+    function openRoutineModal() {
+      populateRoutineCategoryDropdown();
+      renderRoutineListUI();
+      document.getElementById('new-routine-name').value = '';
+      document.getElementById('new-routine-start').value = '';
+      document.getElementById('new-routine-end').value = '';
+      document.getElementById('modal-routine').classList.remove('hidden');
+    }
+
+    function closeRoutineModal() {
+      document.getElementById('modal-routine').classList.add('hidden');
+    }
+
+    function populateRoutineCategoryDropdown() {
+      const select = document.getElementById('new-routine-cat');
+      select.innerHTML = '';
+      categories.forEach(c => {
+        select.innerHTML += `<option value="${c.name}">${c.emoji} ${c.name}</option>`;
+      });
+    }
+
+    function renderRoutineListUI() {
+      const container = document.getElementById('routine-list-container');
+      const badge = document.getElementById('routine-count-badge');
+      badge.innerText = `${routines.length} Item`;
+      container.innerHTML = '';
+
+      if (routines.length === 0) {
+        container.innerHTML = `
+          <div class="text-center p-6 text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            Belum ada template rutinitas. Tambahkan di formulir atas!
+          </div>
+        `;
+        return;
+      }
+
+      routines.forEach((r, idx) => {
+        const catObj = categories.find(c => c.name === r.kategori) || { emoji: '📌', style: 'bg-slate-100 text-slate-700 border-slate-300' };
+        const timeStr = r.jamMulai ? `⏰ ${r.jamMulai}${r.jamSelesai ? ' - ' + r.jamSelesai : ''}` : '⏰ Jam Bebas';
+
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:bg-slate-100/70 transition";
+        row.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-800 text-sm">${r.aktivitas}</span>
+              <span class="px-2 py-0.5 rounded-full border ${catObj.style} text-[10px] font-semibold">${catObj.emoji} ${r.kategori}</span>
+            </div>
+            <div class="text-slate-500 font-medium text-[11px]">${timeStr}</div>
+          </div>
+          <button onclick="deleteRoutine(${idx})" class="text-slate-400 hover:text-red-600 font-bold p-1 rounded transition" title="Hapus dari template">🗑️</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addNewRoutine() {
+      const name = document.getElementById('new-routine-name').value.trim();
+      const start = document.getElementById('new-routine-start').value;
+      const end = document.getElementById('new-routine-end').value;
+      const cat = document.getElementById('new-routine-cat').value;
+
+      if (!name) {
+        alert('Nama aktivitas rutin tidak boleh kosong!');
+        return;
+      }
+
+      routines.push({
+        id: 'r_' + Date.now(),
+        aktivitas: name,
+        jamMulai: start || '',
+        jamSelesai: end || '',
+        kategori: cat || 'Umum'
+      });
+
+      saveData();
+      renderRoutineListUI();
+      document.getElementById('new-routine-name').value = '';
+      document.getElementById('new-routine-start').value = '';
+      document.getElementById('new-routine-end').value = '';
+      showToast(`Rutinitas "${name}" disimpan ke template!`, '✅');
+    }
+
+    function deleteRoutine(index) {
+      if (confirm(`Hapus "${routines[index].aktivitas}" dari template rutinitas?`)) {
+        routines.splice(index, 1);
+        saveData();
+        renderRoutineListUI();
+        showToast('Rutinitas dihapus dari template.', '🗑️');
+      }
+    }
+
+    function applyRoutineToday(targetDate) {
+      const dateToApply = targetDate || realTimeDateStr;
+      if (routines.length === 0) {
+        alert('Template rutinitas masih kosong. Silakan atur di "Template Rutinitas" terlebih dahulu.');
+        return;
+      }
+
+      let addedCount = 0;
+      routines.forEach(r => {
+        const alreadyExists = activities.some(a => a.tanggal === dateToApply && a.aktivitas.toLowerCase() === r.aktivitas.toLowerCase());
+        if (!alreadyExists) {
+          activities.unshift({
+            id: Date.now().toString() + '_' + Math.random().toString(36).substr(2, 5),
+            tanggal: dateToApply,
+            hari: getNamaHari(dateToApply),
+            jamMulai: r.jamMulai || '',
+            jamSelesai: r.jamSelesai || '',
+            aktivitas: r.aktivitas,
+            kategori: r.kategori || 'Umum',
+            status: 'Belum',
+            catatan: 'Rutinitas harian',
+            evaluasi: '-'
+          });
+          addedCount++;
+        }
+      });
+
+      saveData();
+      renderTodayTable();
+      renderCalendarTab();
+      renderDashboardTab();
+
+      if (addedCount > 0) {
+        showToast(`${addedCount} aktivitas rutin berhasil dimuat ke hari ini!`, '🎉');
+      } else {
+        showToast(`Semua rutinitas sudah ada di tanggal ${dateToApply}.`, 'ℹ️');
+      }
+    }
+
     // Modal Input Aktivitas Handlers
     function openAddModalForSelectedDate() {
       populateCategoryDropdowns();
       document.getElementById('modal-tanggal').value = selectedCalDate || realTimeDateStr;
       document.getElementById('modal-aktivitas').value = '';
+      document.getElementById('modal-jam-mulai').value = '';
+      document.getElementById('modal-jam-selesai').value = '';
       document.getElementById('modal-catatan').value = '';
       document.getElementById('modal-evaluasi').value = '';
       document.getElementById('modal-add').classList.remove('hidden');
@@ -783,6 +1049,8 @@
     function saveModalData() {
       const tgl = document.getElementById('modal-tanggal').value || realTimeDateStr;
       const akt = document.getElementById('modal-aktivitas').value.trim() || 'Aktivitas Baru';
+      const jMulai = document.getElementById('modal-jam-mulai').value || '';
+      const jSelesai = document.getElementById('modal-jam-selesai').value || '';
       const kat = document.getElementById('modal-kategori').value;
       const stat = document.getElementById('modal-status').value;
       const cat = document.getElementById('modal-catatan').value || '-';
@@ -792,6 +1060,8 @@
         id: Date.now().toString(),
         tanggal: tgl,
         hari: getNamaHari(tgl),
+        jamMulai: jMulai,
+        jamSelesai: jSelesai,
         aktivitas: akt,
         kategori: kat,
         status: stat,
@@ -804,6 +1074,7 @@
       renderTodayTable();
       renderCalendarTab();
       renderDashboardTab();
+      showToast('Aktivitas baru berhasil disimpan!', '✅');
     }
 
     function getStatusStyle(stat) {
@@ -830,6 +1101,8 @@
         id: Date.now().toString(),
         tanggal: today,
         hari: getNamaHari(today),
+        jamMulai: '',
+        jamSelesai: '',
         aktivitas: 'Ketik aktivitas di sini...',
         kategori: categories[0] ? categories[0].name : 'Umum',
         status: 'Belum',
@@ -847,6 +1120,7 @@
         renderTodayTable();
         renderCalendarTab();
         renderDashboardTab();
+        showToast('Baris aktivitas dihapus.', '🗑️');
       }
     }
 
